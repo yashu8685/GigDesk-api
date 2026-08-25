@@ -1,0 +1,494 @@
+import { and, count, desc, eq, isNull, ne, sql } from 'drizzle-orm'
+import { db } from '../../db/client.js'
+import {
+  eventLog,
+  jobAssignments,
+  jobRequests,
+  jobs,
+  notifications,
+  payouts,
+  users,
+} from '../../db/schemas/index.js'
+import { conflict, forbidden, notFound } from '../../lib/http-error.js'
+import type {
+  CompleteInput,
+  RegisterInput,
+  UpdateMeInput,
+} from './schemas.js'
+
+async function requireApprovedWorker(workerId: string) {
+  const [workerUser] = await db
+    .select({
+      id: users.id,
+      fullName: users.fullName,
+      status: users.status,
+      city: users.city,
+      area: users.area,
+      pincode: users.pincode,
+    })
+    .from(users)
+    .where(and(eq(users.id, workerId), eq(users.userType, 'worker')))
+    .limit(1)
+  if (!workerUser) throw notFound('Worker not found')
+  return workerUser
+}
+
+export async function register(input: RegisterInput) {
+  const existing = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.phone, input.phone), eq(users.userType, 'worker')))
+    .limit(1)
+  if (existing.length > 0) {
+    throw conflict('This phone number is already registered')
+  }
+
+  return db.transaction(async (tx) => {
+    const [workerUser] = await tx
+      .insert(users)
+      .values({
+        userType: 'worker',
+        fullName: input.fullName,
+        phone: input.phone,
+        city: input.city,
+        area: input.area,
+        pincode: input.pincode,
+        idProofUrl: input.idProofUrl,
+        status: 'pending',
+      })
+      .returning({ id: users.id, status: users.status })
+
+    await tx.insert(eventLog).values({
+      type: 'worker.registered',
+      payload: { workerId: workerUser!.id, phone: input.phone },
+    })
+
+    return { id: workerUser!.id, status: workerUser!.status }
+  })
+}
+
+export async function getMe(workerId: string) {
+  const [workerUser] = await db
+    .select({
+      id: users.id,
+      fullName: users.fullName,
+      phone: users.phone,
+      city: users.city,
+      area: users.area,
+      pincode: users.pincode,
+      idProofUrl: users.idProofUrl,
+      status: users.status,
+      registeredAt: users.registeredAt,
+      rejectionReason: users.rejectionReason,
+    })
+    .from(users)
+    .where(eq(users.id, workerId))
+    .limit(1)
+  if (!workerUser) throw notFound('Worker not found')
+  return workerUser
+}
+
+export async function updateMe(workerId: string, input: UpdateMeInput) {
+  const [updated] = await db
+    .update(users)
+    .set({
+      ...(input.fullName !== undefined ? { fullName: input.fullName } : {}),
+      ...(input.city !== undefined ? { city: input.city } : {}),
+      ...(input.area !== undefined ? { area: input.area } : {}),
+      ...(input.pincode !== undefined ? { pincode: input.pincode } : {}),
+    })
+    .where(eq(users.id, workerId))
+    .returning({ id: users.id, fullName: users.fullName, city: users.city, area: users.area, pincode: users.pincode })
+  if (!updated) throw notFound('Worker not found')
+  return updated
+}
+
+export async function home(workerId: string) {
+  const workerUser = await getMe(workerId)
+
+  const [active] = await db
+    .select({
+      assignmentId: jobAssignments.id,
+      jobId: jobs.id,
+      jobTitle: jobs.title,
+      jobArea: jobs.area,
+      jobPincode: jobs.pincode,
+      payAmountInr: jobs.payAmountInr,
+      assignedAt: jobAssignments.assignedAt,
+    })
+    .from(jobAssignments)
+    .innerJoin(jobs, eq(jobAssignments.jobId, jobs.id))
+    .where(
+      and(
+        eq(jobAssignments.workerId, workerId),
+        eq(jobAssignments.status, 'active'),
+        eq(jobs.status, 'assigned'),
+      ),
+    )
+    .limit(1)
+
+  const [earnings] = await db
+    .select({
+      paidTotal: sql<number>`coalesce(sum(case when ${payouts.status} = 'paid' then ${payouts.amountInr} else 0 end), 0)::int`,
+      pendingTotal: sql<number>`coalesce(sum(case when ${payouts.status} = 'pending' then ${payouts.amountInr} else 0 end), 0)::int`,
+    })
+    .from(payouts)
+    .where(eq(payouts.workerId, workerId))
+
+  const [unread] = await db
+    .select({ value: count() })
+    .from(notifications)
+    .where(and(eq(notifications.workerId, workerId), isNull(notifications.readAt)))
+
+  return {
+    worker: workerUser,
+    activeJob: active ?? null,
+    earnings: { paidTotal: earnings!.paidTotal, pendingTotal: earnings!.pendingTotal },
+    unreadNotifications: unread!.value,
+  }
+}
+
+export async function availableJobs(workerId: string) {
+  const workerUser = await requireApprovedWorker(workerId)
+  if (workerUser.status !== 'approved') {
+    throw forbidden('Your registration is not approved yet')
+  }
+
+  const items = await db
+    .select({
+      id: jobs.id,
+      title: jobs.title,
+      description: jobs.description,
+      city: jobs.city,
+      area: jobs.area,
+      pincode: jobs.pincode,
+      payAmountInr: jobs.payAmountInr,
+      durationHours: jobs.durationHours,
+      createdAt: jobs.createdAt,
+      myPendingRequestId: sql<string | null>`(
+        select jr.id from job_requests jr
+        where jr.job_id = jobs.id and jr.worker_id = ${workerId} and jr.status = 'pending'
+        limit 1
+      )`,
+    })
+    .from(jobs)
+    .where(and(eq(jobs.status, 'open'), eq(jobs.pincode, workerUser.pincode!)))
+    .orderBy(desc(jobs.createdAt))
+
+  return { items }
+}
+
+export async function jobDetailForWorker(workerId: string, jobId: string) {
+  const [job] = await db
+    .select({
+      id: jobs.id,
+      title: jobs.title,
+      description: jobs.description,
+      city: jobs.city,
+      area: jobs.area,
+      pincode: jobs.pincode,
+      payAmountInr: jobs.payAmountInr,
+      durationHours: jobs.durationHours,
+      status: jobs.status,
+      createdAt: jobs.createdAt,
+    })
+    .from(jobs)
+    .where(eq(jobs.id, jobId))
+    .limit(1)
+  if (!job) throw notFound('Job not found')
+
+  const [myRequest] = await db
+    .select({ id: jobRequests.id, status: jobRequests.status, requestedAt: jobRequests.requestedAt })
+    .from(jobRequests)
+    .where(
+      and(
+        eq(jobRequests.jobId, jobId),
+        eq(jobRequests.workerId, workerId),
+        ne(jobRequests.status, 'rejected'),
+      ),
+    )
+    .orderBy(desc(jobRequests.requestedAt))
+    .limit(1)
+
+  return { job, myRequest: myRequest ?? null }
+}
+
+export async function requestJob(workerId: string, jobId: string) {
+  return db.transaction(async (tx) => {
+    const [workerUser] = await tx
+      .select({ id: users.id, status: users.status, pincode: users.pincode })
+      .from(users)
+      .where(eq(users.id, workerId))
+      .for('update')
+      .limit(1)
+    if (!workerUser) throw notFound('Worker not found')
+    if (workerUser.status !== 'approved') {
+      throw forbidden('Your registration is not approved yet')
+    }
+
+    const [job] = await tx
+      .select({ id: jobs.id, title: jobs.title, status: jobs.status, pincode: jobs.pincode, area: jobs.area })
+      .from(jobs)
+      .where(eq(jobs.id, jobId))
+      .for('update')
+      .limit(1)
+    if (!job) throw notFound('Job not found')
+    if (job.status !== 'open') throw conflict('Job is no longer open')
+    if (job.pincode !== workerUser.pincode) {
+      throw conflict('This job is not in your area')
+    }
+
+    const [dup] = await tx
+      .select({ id: jobRequests.id })
+      .from(jobRequests)
+      .where(
+        and(
+          eq(jobRequests.jobId, jobId),
+          eq(jobRequests.workerId, workerId),
+          eq(jobRequests.status, 'pending'),
+        ),
+      )
+      .limit(1)
+    if (dup) throw conflict('You already have a pending request for this job')
+
+    const [request] = await tx
+      .insert(jobRequests)
+      .values({ jobId, workerId, status: 'pending' })
+      .returning({ id: jobRequests.id, requestedAt: jobRequests.requestedAt })
+
+    await tx.insert(eventLog).values({
+      type: 'job_request.created',
+      jobId,
+      payload: { workerId, requestId: request!.id },
+    })
+
+    return { requestId: request!.id, status: 'pending', requestedAt: request!.requestedAt }
+  })
+}
+
+export async function myRequests(workerId: string) {
+  return db
+    .select({
+      id: jobRequests.id,
+      status: jobRequests.status,
+      requestedAt: jobRequests.requestedAt,
+      reviewedAt: jobRequests.reviewedAt,
+      jobTitle: jobs.title,
+      jobArea: jobs.area,
+      jobPayAmountInr: jobs.payAmountInr,
+    })
+    .from(jobRequests)
+    .leftJoin(jobs, eq(jobRequests.jobId, jobs.id))
+    .where(eq(jobRequests.workerId, workerId))
+    .orderBy(desc(jobRequests.requestedAt))
+}
+
+export async function myAssignments(workerId: string) {
+  return db
+    .select({
+      id: jobAssignments.id,
+      status: jobAssignments.status,
+      source: jobAssignments.source,
+      assignedAt: jobAssignments.assignedAt,
+      cancelledAt: jobAssignments.cancelledAt,
+      jobId: jobs.id,
+      jobTitle: jobs.title,
+      jobStatus: jobs.status,
+      jobArea: jobs.area,
+      jobPincode: jobs.pincode,
+      payAmountInr: jobs.payAmountInr,
+    })
+    .from(jobAssignments)
+    .innerJoin(jobs, eq(jobAssignments.jobId, jobs.id))
+    .where(eq(jobAssignments.workerId, workerId))
+    .orderBy(desc(jobAssignments.assignedAt))
+}
+
+export async function activeAssignment(workerId: string) {
+  const [active] = await db
+    .select({
+      assignmentId: jobAssignments.id,
+      assignedAt: jobAssignments.assignedAt,
+      jobId: jobs.id,
+      jobTitle: jobs.title,
+      jobDescription: jobs.description,
+      jobArea: jobs.area,
+      jobCity: jobs.city,
+      jobPincode: jobs.pincode,
+      payAmountInr: jobs.payAmountInr,
+      durationHours: jobs.durationHours,
+    })
+    .from(jobAssignments)
+    .innerJoin(jobs, eq(jobAssignments.jobId, jobs.id))
+    .where(
+      and(
+        eq(jobAssignments.workerId, workerId),
+        eq(jobAssignments.status, 'active'),
+        eq(jobs.status, 'assigned'),
+      ),
+    )
+    .limit(1)
+  return active ?? null
+}
+
+/**
+ * Worker completes their assigned job. Proof photo is mandatory — the DB
+ * check constraint enforces it too. One transaction writes: job completed,
+ * payout row (pending), audit event, worker notification. Completion is
+ * never a dead end.
+ */
+export async function completeAssignment(
+  workerId: string,
+  assignmentId: string,
+  input: CompleteInput,
+) {
+  return db.transaction(async (tx) => {
+    const [assignment] = await tx
+      .select()
+      .from(jobAssignments)
+      .where(eq(jobAssignments.id, assignmentId))
+      .for('update')
+      .limit(1)
+
+    if (!assignment) throw notFound('Assignment not found')
+    if (assignment.workerId !== workerId) {
+      throw forbidden('This assignment belongs to another worker')
+    }
+    if (assignment.status !== 'active') {
+      throw conflict('Assignment is no longer active')
+    }
+
+    const [job] = await tx
+      .select({ id: jobs.id, title: jobs.title, status: jobs.status, payAmountInr: jobs.payAmountInr, area: jobs.area })
+      .from(jobs)
+      .where(eq(jobs.id, assignment.jobId))
+      .for('update')
+      .limit(1)
+
+    if (!job) throw notFound('Job for this assignment no longer exists')
+    if (job.status !== 'assigned') {
+      throw conflict(`Job cannot be completed (status: ${job.status})`)
+    }
+
+    const now = new Date()
+
+    await tx
+      .update(jobs)
+      .set({ status: 'completed', completedAt: now, proofPhotoUrl: input.proofPhotoUrl })
+      .where(eq(jobs.id, job.id))
+
+    await tx.insert(payouts).values({
+      jobId: job.id,
+      workerId,
+      amountInr: job.payAmountInr,
+      status: 'pending',
+    })
+
+    await tx.insert(eventLog).values({
+      type: 'job.completed',
+      jobId: job.id,
+      payload: { workerId, proofPhotoUrl: input.proofPhotoUrl },
+    })
+
+    await tx.insert(notifications).values({
+      workerId,
+      type: 'job.completed',
+      title: 'Work submitted',
+      body: `"${job.title}" marked complete. Payout of ₹${job.payAmountInr} is pending.`,
+      jobId: job.id,
+    })
+
+    return {
+      jobId: job.id,
+      jobStatus: 'completed',
+      completedAt: now.toISOString(),
+      payoutAmountInr: job.payAmountInr,
+    }
+  })
+}
+
+export async function earnings(workerId: string) {
+  const items = await db
+    .select({
+      id: payouts.id,
+      amountInr: payouts.amountInr,
+      status: payouts.status,
+      createdAt: payouts.createdAt,
+      paidAt: payouts.paidAt,
+      jobTitle: jobs.title,
+      jobArea: jobs.area,
+      completedAt: jobs.completedAt,
+    })
+    .from(payouts)
+    .innerJoin(jobs, eq(payouts.jobId, jobs.id))
+    .where(eq(payouts.workerId, workerId))
+    .orderBy(desc(payouts.createdAt))
+
+  const paidTotal = items.filter((i) => i.status === 'paid').reduce((s, i) => s + i.amountInr, 0)
+  const pendingTotal = items.filter((i) => i.status === 'pending').reduce((s, i) => s + i.amountInr, 0)
+
+  return { items, paidTotal, pendingTotal }
+}
+
+export async function performance(workerId: string) {
+  const [completedRow] = await db
+    .select({ value: count() })
+    .from(jobs)
+    .where(and(eq(jobs.assignedWorkerId, workerId), eq(jobs.status, 'completed')))
+
+  const [cancelledRow] = await db
+    .select({ value: count() })
+    .from(jobAssignments)
+    .where(
+      and(
+        eq(jobAssignments.workerId, workerId),
+        eq(jobAssignments.status, 'cancelled'),
+      ),
+    )
+
+  const [earningsRow] = await db
+    .select({
+      paidTotal: sql<number>`coalesce(sum(case when ${payouts.status} = 'paid' then ${payouts.amountInr} else 0 end), 0)::int`,
+      pendingTotal: sql<number>`coalesce(sum(case when ${payouts.status} = 'pending' then ${payouts.amountInr} else 0 end), 0)::int`,
+    })
+    .from(payouts)
+    .where(eq(payouts.workerId, workerId))
+
+  return {
+    completedJobs: completedRow!.value,
+    cancelledAssignments: cancelledRow!.value,
+    paidTotal: earningsRow!.paidTotal,
+    pendingTotal: earningsRow!.pendingTotal,
+  }
+}
+
+export async function notificationsList(workerId: string, unreadOnly: boolean) {
+  const where = unreadOnly
+    ? and(eq(notifications.workerId, workerId), isNull(notifications.readAt))
+    : eq(notifications.workerId, workerId)
+  return db
+    .select()
+    .from(notifications)
+    .where(where)
+    .orderBy(desc(notifications.createdAt))
+    .limit(100)
+}
+
+export async function markNotificationRead(workerId: string, notificationId: string) {
+  const [updated] = await db
+    .update(notifications)
+    .set({ readAt: new Date() })
+    .where(and(eq(notifications.id, notificationId), eq(notifications.workerId, workerId), isNull(notifications.readAt)))
+    .returning({ id: notifications.id })
+  if (!updated) throw notFound('Notification not found or already read')
+  return updated
+}
+
+export async function markAllNotificationsRead(workerId: string) {
+  const updated = await db
+    .update(notifications)
+    .set({ readAt: new Date() })
+    .where(and(eq(notifications.workerId, workerId), isNull(notifications.readAt)))
+    .returning({ id: notifications.id })
+  return { marked: updated.length }
+}
