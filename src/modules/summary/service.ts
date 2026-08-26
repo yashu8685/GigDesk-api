@@ -1,6 +1,12 @@
-import { and, count, desc, eq, sql } from 'drizzle-orm'
+import { count, desc, eq, sql } from 'drizzle-orm'
 import { db } from '../../db/client.js'
-import { eventLog, jobs, payouts, users } from '../../db/schemas/index.js'
+import {
+  eventLog,
+  jobRequests,
+  jobs,
+  payouts,
+  users,
+} from '../../db/schemas/index.js'
 
 export async function getSummary() {
   const [[workerCounts], [jobCounts], [requestPending], [payoutSums]] =
@@ -36,8 +42,8 @@ export async function getSummary() {
 
   const [pendingRequests] = await db
     .select({ value: count() })
-    .from(eventLog)
-    .where(and(eq(eventLog.type, 'job_request.created'), eq(eventLog.status, 'pending')))
+    .from(jobRequests)
+    .where(eq(jobRequests.status, 'pending'))
 
   const recentActivity = await db
     .select({
