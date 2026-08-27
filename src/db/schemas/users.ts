@@ -28,11 +28,13 @@ export const users = pgTable(
     passwordHash: text('password_hash'), // admins (workers use OTP)
     // Worker-only fields (null for admins)
     city: text('city'),
+    district: text('district'),
     area: text('area'),
     pincode: text('pincode'),
     idProofUrl: text('id_proof_url'),
     // workers: 'pending' | 'approved' | 'rejected' — admins: 'active'
     status: varchar('status', { length: 10 }).notNull().default('pending'),
+    // Always UTC: timestamptz stores UTC, JS new Date() is UTC when serialized to ISO Z
     registeredAt: timestamp('registered_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

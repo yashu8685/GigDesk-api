@@ -68,6 +68,7 @@ async function main() {
         fullName: w.fullName,
         phone: w.phone,
         city: w.city,
+        district: (w as unknown as { district: string }).district ?? w.city,
         area: w.area,
         pincode: w.pincode,
         idProofUrl: `https://picsum.photos/seed/idproof-${w.key}/480/300`,
@@ -87,28 +88,34 @@ async function main() {
   const insertedJobs = await db
     .insert(jobs)
     .values(
-      jobSeeds.map((j) => ({
-        title: j.title,
-        description: j.description,
-        city: j.city,
-        area: j.area,
-        pincode: j.pincode,
-        payAmountInr: j.payAmountInr,
-        durationHours: j.durationHours,
-        status: j.status,
-        createdBy: adminId,
-        createdAt: hoursAgo(j.createdHoursAgo),
-        assignedWorkerId: j.workerKey ? workerIds.get(j.workerKey)! : null,
-        assignedAt: j.assignedHoursAgo ? hoursAgo(j.assignedHoursAgo) : null,
-        completedAt: j.completedHoursAgo ? hoursAgo(j.completedHoursAgo) : null,
-        proofPhotoUrl:
-          j.status === 'completed'
-            ? `https://picsum.photos/seed/proof-${j.key}/640/420`
-            : null,
-        cancelledAt: j.cancelledHoursAgo ? hoursAgo(j.cancelledHoursAgo) : null,
-        cancelledReason: j.cancelledReason ?? null,
-        cancelledBy: j.cancelledHoursAgo ? adminId : null,
-      })),
+      jobSeeds.map((j) => {
+        const createdAt = hoursAgo(j.createdHoursAgo)
+        const deadlineAt = new Date(createdAt.getTime() + j.durationHours * 3600000)
+        return {
+          title: j.title,
+          description: j.description,
+          city: j.city,
+          district: (j as unknown as { district: string }).district ?? j.city,
+          area: j.area,
+          pincode: j.pincode,
+          payAmountInr: j.payAmountInr,
+          durationHours: j.durationHours,
+          deadlineAt,
+          status: j.status,
+          createdBy: adminId,
+          createdAt,
+          assignedWorkerId: j.workerKey ? workerIds.get(j.workerKey)! : null,
+          assignedAt: j.assignedHoursAgo ? hoursAgo(j.assignedHoursAgo) : null,
+          completedAt: j.completedHoursAgo ? hoursAgo(j.completedHoursAgo) : null,
+          proofPhotoUrl:
+            j.status === 'completed'
+              ? `https://picsum.photos/seed/proof-${j.key}/640/420`
+              : null,
+          cancelledAt: j.cancelledHoursAgo ? hoursAgo(j.cancelledHoursAgo) : null,
+          cancelledReason: j.cancelledReason ?? null,
+          cancelledBy: j.cancelledHoursAgo ? adminId : null,
+        }
+      }),
     )
     .returning({ id: jobs.id })
   jobSeeds.forEach((j, i) => jobIds.set(j.key, insertedJobs[i]!.id))

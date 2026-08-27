@@ -5,7 +5,7 @@ export const listEventsQuerySchema = z.object({
   jobId: z.uuid().optional(),
   status: z.enum(['pending', 'processed']).optional(),
   page: z.coerce.number().int().positive().default(1),
-  pageSize: z.coerce.number().int().positive().max(100).default(30),
+  pageSize: z.coerce.number().int().positive().max(100).default(15),
 })
 
 export type ListEventsQuery = z.infer<typeof listEventsQuerySchema>

@@ -50,11 +50,13 @@ export async function listPayouts(query: ListPayoutsQuery) {
       .from(payouts),
   ])
 
+  const total = totals!.value
   return {
     items,
-    total: totals!.value,
+    total,
     page: query.page,
     pageSize: query.pageSize,
+    totalPages: Math.ceil(total / query.pageSize),
     pendingAmountInr: sums!.pendingAmount,
     paidAmountInr: sums!.paidAmount,
   }

@@ -40,10 +40,19 @@ export async function getSummary() {
         .from(payouts),
     ])
 
-  const [pendingRequests] = await db
-    .select({ value: count() })
-    .from(jobRequests)
-    .where(eq(jobRequests.status, 'pending'))
+  const [[requestCounts], [pendingRequests]] = await Promise.all([
+    db
+      .select({
+        pending: sql<number>`count(*) filter (where ${jobRequests.status} = 'pending')::int`,
+        approved: sql<number>`count(*) filter (where ${jobRequests.status} = 'approved')::int`,
+        rejected: sql<number>`count(*) filter (where ${jobRequests.status} = 'rejected')::int`,
+      })
+      .from(jobRequests),
+    db
+      .select({ value: count() })
+      .from(jobRequests)
+      .where(eq(jobRequests.status, 'pending')),
+  ])
 
   const recentActivity = await db
     .select({
@@ -63,6 +72,7 @@ export async function getSummary() {
     jobs: jobCounts,
     openJobsWithPendingRequests: requestPending!.value,
     pendingRequests: pendingRequests!.value,
+    requests: requestCounts!,
     payouts: {
       pendingCount: payoutSums!.pendingCount,
       pendingAmountInr: payoutSums!.pendingAmount,

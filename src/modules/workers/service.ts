@@ -9,6 +9,7 @@ const workerColumns = {
   fullName: users.fullName,
   phone: users.phone,
   city: users.city,
+  district: users.district,
   area: users.area,
   pincode: users.pincode,
   idProofUrl: users.idProofUrl,
@@ -22,6 +23,7 @@ export async function listWorkers(query: ListWorkersQuery) {
   const conditions = [eq(users.userType, 'worker')]
   if (query.status) conditions.push(eq(users.status, query.status))
   if (query.city) conditions.push(ilike(users.city, `%${query.city}%`))
+  if (query.district) conditions.push(ilike(users.district, `%${query.district}%`))
   if (query.pincode) conditions.push(eq(users.pincode, query.pincode))
   if (query.search) {
     conditions.push(
@@ -44,7 +46,8 @@ export async function listWorkers(query: ListWorkersQuery) {
     db.select({ value: count() }).from(users).where(where),
   ])
 
-  return { items, total: totals!.value, page: query.page, pageSize: query.pageSize }
+  const total = totals!.value
+  return { items, total, page: query.page, pageSize: query.pageSize, totalPages: Math.ceil(total / query.pageSize) }
 }
 
 export async function getWorker(workerId: string) {

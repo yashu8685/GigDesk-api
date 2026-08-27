@@ -8,6 +8,7 @@ import { assignmentsRouter } from './modules/assignments/routes.js'
 import { authRouter } from './modules/auth/routes.js'
 import { eventsRouter } from './modules/events/routes.js'
 import { jobsRouter } from './modules/jobs/routes.js'
+import { metaRouter } from './modules/meta/routes.js'
 import { payoutsRouter } from './modules/payouts/routes.js'
 import { requestsRouter } from './modules/requests/routes.js'
 import { summaryRouter } from './modules/summary/routes.js'
@@ -47,6 +48,7 @@ export function createApp() {
   app.use('/admin/payouts', payoutsRouter)
   app.use('/admin/events', eventsRouter)
   app.use('/admin/summary', summaryRouter)
+  app.use('/admin/meta', metaRouter)
 
   app.use(errorHandler)
   return app

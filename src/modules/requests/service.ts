@@ -52,7 +52,8 @@ export async function listRequests(query: ListRequestsQuery) {
     db.select({ value: count() }).from(jobRequests).where(where),
   ])
 
-  return { items, total: totals!.value, page: query.page, pageSize: query.pageSize }
+  const total = totals!.value
+  return { items, total, page: query.page, pageSize: query.pageSize, totalPages: Math.ceil(total / query.pageSize) }
 }
 
 /**

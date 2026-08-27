@@ -31,5 +31,6 @@ export async function listEvents(query: ListEventsQuery) {
     db.select({ value: count() }).from(eventLog).where(where),
   ])
 
-  return { items, total: totals!.value, page: query.page, pageSize: query.pageSize }
+  const total = totals!.value
+  return { items, total, page: query.page, pageSize: query.pageSize, totalPages: Math.ceil(total / query.pageSize) }
 }

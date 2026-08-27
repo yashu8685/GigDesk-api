@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import {
   check,
+  doublePrecision,
   index,
   integer,
   pgEnum,
@@ -24,14 +25,19 @@ export const jobs = pgTable(
     title: text('title').notNull(),
     description: text('description').notNull().default(''),
     city: text('city').notNull(),
+    district: text('district'),
     area: text('area').notNull(),
     pincode: text('pincode').notNull(),
     payAmountInr: integer('pay_amount_inr').notNull(),
     durationHours: integer('duration_hours').notNull(),
+    deadlineAt: timestamp('deadline_at', { withTimezone: true }).notNull(),
+    lat: doublePrecision('lat'),
+    lng: doublePrecision('lng'),
     status: jobStatusEnum('status').notNull().default('open'),
     createdBy: uuid('created_by')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
+    // All timestamps are UTC (timestamptz). Backend always uses new Date() -> ISO Z, PG stores UTC.
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
