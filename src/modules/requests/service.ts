@@ -19,6 +19,7 @@ export async function listRequests(query: ListRequestsQuery) {
   const conditions = []
   if (query.status) conditions.push(eq(jobRequests.status, query.status))
   if (query.jobId) conditions.push(eq(jobRequests.jobId, query.jobId))
+  if (query.workerId) conditions.push(eq(jobRequests.workerId, query.workerId))
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   const [items, [totals]] = await Promise.all([

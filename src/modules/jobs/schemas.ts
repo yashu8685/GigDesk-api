@@ -24,6 +24,8 @@ export const listJobsQuerySchema = z.object({
     .regex(/^\d{6}$/, 'Pincode must be 6 digits')
     .optional(),
   search: z.string().trim().max(200).optional(),
+  workerId: z.uuid().optional(),
+  assignedWorkerId: z.uuid().optional(),
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(15),
 })

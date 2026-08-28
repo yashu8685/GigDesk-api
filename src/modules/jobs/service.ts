@@ -102,12 +102,14 @@ export async function createJob(adminId: string, input: CreateJobInput) {
 }
 
 export async function listJobs(query: ListJobsQuery) {
+  const workerFilter = query.workerId ?? query.assignedWorkerId
   const conditions = []
   if (query.status) conditions.push(eq(jobs.status, query.status))
   if (query.city) conditions.push(ilike(jobs.city, `%${query.city}%`))
   if (query.district) conditions.push(ilike(jobs.district, `%${query.district}%`))
   if (query.pincode) conditions.push(eq(jobs.pincode, query.pincode))
   if (query.search) conditions.push(ilike(jobs.title, `%${query.search}%`))
+  if (workerFilter) conditions.push(eq(jobs.assignedWorkerId, workerFilter))
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
   const [items, [totals]] = await Promise.all([

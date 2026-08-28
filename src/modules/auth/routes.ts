@@ -3,10 +3,11 @@ import { asyncHandler } from '../../middleware/async-handler.js'
 import { requireAdmin } from '../../middleware/require-admin.js'
 import {
   changePasswordSchema,
+  forgotPasswordSchema,
   loginSchema,
   updateProfileSchema,
 } from './schemas.js'
-import { changePassword, getMe, login, updateProfile } from './service.js'
+import { changePassword, forgotPassword, getMe, login, updateProfile } from './service.js'
 
 export const authRouter = Router()
 
@@ -16,6 +17,15 @@ authRouter.post(
     const input = loginSchema.parse(req.body)
     const result = await login(input)
     res.json({ ok: true, ...result })
+  }),
+)
+
+authRouter.post(
+  '/forgot-password',
+  asyncHandler(async (req, res) => {
+    const input = forgotPasswordSchema.parse(req.body)
+    await forgotPassword(input)
+    res.json({ ok: true, message: 'Password updated successfully' })
   }),
 )
 

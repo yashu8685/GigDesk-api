@@ -8,10 +8,12 @@ import {
   HttpError,
   badRequest,
   conflict,
+  notFound,
   unauthorized,
 } from '../../lib/http-error.js'
 import type {
   ChangePasswordInput,
+  ForgotPasswordInput,
   LoginInput,
   UpdateProfileInput,
 } from './schemas.js'
@@ -158,6 +160,27 @@ export async function changePassword(
   await db.insert(eventLog).values({
     type: 'admin.password_changed',
     payload: { adminId },
+  })
+}
+
+export async function forgotPassword(input: ForgotPasswordInput): Promise<void> {
+  const email = input.email.toLowerCase().trim()
+  const [admin] = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.email, email), eq(users.userType, 'admin')))
+    .limit(1)
+
+  if (!admin) {
+    throw notFound('No admin account found with this email')
+  }
+
+  const passwordHash = await hashPassword(input.newPassword)
+  await db.update(users).set({ passwordHash }).where(eq(users.id, admin.id))
+
+  await db.insert(eventLog).values({
+    type: 'admin.password_reset',
+    payload: { adminId: admin.id, via: 'forgot-password' },
   })
 }
 
