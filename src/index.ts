@@ -3,9 +3,9 @@ import { env } from './config/env.js'
 
 const app = createApp()
 
-const server = app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, '0.0.0.0', () => {
   console.log(
-    `[api.gigdesk] listening on http://localhost:${env.PORT} (${env.NODE_ENV})`,
+    `[api.gigdesk] listening on http://0.0.0.0:${env.PORT} (${env.NODE_ENV})`,
   )
 })
 
