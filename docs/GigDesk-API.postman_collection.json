@@ -1,21 +1,61 @@
 {
   "info": {
     "name": "GigDesk API",
-    "description": "Complete GigDesk API collection (43 endpoints). BaseUrl = https://api-gigdesk-production.up.railway.app (or http://localhost:4000). All bodies MUST be valid JSON with double-quoted keys. Admin routes need Authorization: Bearer {{adminToken}} | Worker routes need Bearer {{workerToken}}. Generated module-wise from src/app.ts and src/modules/*/routes.ts + schemas.ts. Fixed JSON parse now returns 400 Invalid JSON instead of 500.",
+    "description": "Complete GigDesk API collection — VERIFIED 2026-08-31 live on http://127.0.0.1:4000 (also https://api-gigdesk-production.up.railway.app). All bodies MUST be double-quoted JSON. Admin: Bearer {{adminToken}} (POST /auth/login). Worker: Bearer {{workerToken}} (POST /worker/otp/verify). Phone accepts plain 10-digit OR +91 (normalized). Register accepts surname+name OR fullName + email,address,district,profilePhotoUrl,drivingLicenseUrl. OTP verify returns pre-worker JWT for unregistered phone. Uploads mock when S3 not set. Every endpoint includes verified 200/201 example response below. Src: src/app.ts + src/modules/*/routes.ts + schemas.ts. Invalid JSON → 400 {error:'Invalid JSON'}.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "gigdesk-api-v1"
   },
   "variable": [
-    { "key": "baseUrl", "value": "https://api-gigdesk-production.up.railway.app", "type": "string" },
-    { "key": "localBaseUrl", "value": "http://localhost:4000", "type": "string" },
-    { "key": "adminToken", "value": "", "type": "string" },
-    { "key": "workerToken", "value": "", "type": "string" },
-    { "key": "jobId", "value": "00000000-0000-4000-a000-000000000001", "type": "string" },
-    { "key": "workerId", "value": "00000000-0000-4000-a000-000000000002", "type": "string" },
-    { "key": "assignmentId", "value": "00000000-0000-4000-a000-000000000003", "type": "string" },
-    { "key": "requestId", "value": "00000000-0000-4000-a000-000000000004", "type": "string" },
-    { "key": "payoutId", "value": "00000000-0000-4000-a000-000000000005", "type": "string" },
-    { "key": "notificationId", "value": "00000000-0000-4000-a000-000000000006", "type": "string" }
+    {
+      "key": "baseUrl",
+      "value": "https://api-gigdesk-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "localBaseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "00000000-0000-4000-a000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "workerId",
+      "value": "00000000-0000-4000-a000-000000000002",
+      "type": "string"
+    },
+    {
+      "key": "assignmentId",
+      "value": "00000000-0000-4000-a000-000000000003",
+      "type": "string"
+    },
+    {
+      "key": "requestId",
+      "value": "00000000-0000-4000-a000-000000000004",
+      "type": "string"
+    },
+    {
+      "key": "payoutId",
+      "value": "00000000-0000-4000-a000-000000000005",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "00000000-0000-4000-a000-000000000006",
+      "type": "string"
+    }
   ],
   "item": [
     {
@@ -27,10 +67,47 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] },
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
             "description": "Liveness. Expected 200 {ok:true, service:'api.gigdesk', time: ISO}"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "health"
+                  ]
+                },
+                "description": "Liveness. Expected 200 {ok:true, service:'api.gigdesk', time: ISO}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"service\": \"api.gigdesk\",\n  \"time\": \"2026-08-31T06:40:05.638Z\"\n}"
+            }
+          ]
         }
       ]
     },
@@ -42,56 +119,356 @@
           "name": "POST /auth/login - Admin login",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@gigdesk.local\",\n  \"password\": \"admin@123\"\n}" },
-            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@gigdesk.local\",\n  \"password\": \"newAdmin@12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
             "description": "src/modules/auth/schemas.ts:3 loginSchema {email:email, password:min1}. Success 200 {ok:true, token, admin}. On success set {{adminToken}} via Tests tab. Invalid JSON now returns 400 {error:'Invalid JSON'} due to src/middleware/error-handler.ts fix."
           },
-          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json();","if(json.token){ pm.collectionVariables.set('adminToken', json.token); }"], "type": "text/javascript" } }],
-          "response": []
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if(json.token){ pm.collectionVariables.set('adminToken', json.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@gigdesk.local\",\n  \"password\": \"newAdmin@12345\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "src/modules/auth/schemas.ts:3 loginSchema {email:email, password:min1}. Success 200 {ok:true, token, admin}. On success set {{adminToken}} via Tests tab. Invalid JSON now returns 400 {error:'Invalid JSON'} due to src/middleware/error-handler.ts fix."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9...\",\n  \"admin\": {\n    \"id\": \"46a4c94d-a09a-40f4-b021-afabb2b5766e\",\n    \"email\": \"admin@gigdesk.local\",\n    \"fullName\": \"GigDesk Admin Updated\",\n    \"phone\": \"9876543210\",\n    \"status\": \"active\",\n    \"registeredAt\": \"2026-08-27T10:08:11.546Z\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "POST /auth/forgot-password",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@gigdesk.local\",\n  \"newPassword\": \"newAdmin@12345\"\n}" },
-            "url": { "raw": "{{baseUrl}}/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["auth","forgot-password"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@gigdesk.local\",\n  \"newPassword\": \"newAdmin@12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
             "description": "src/modules/auth/schemas.ts:30 {email:email, newPassword:min8}. Public."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@gigdesk.local\",\n  \"newPassword\": \"newAdmin@12345\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/forgot-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "src/modules/auth/schemas.ts:30 {email:email, newPassword:min8}. Public."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"message\": \"Password reset\"\n}"
+            }
+          ]
         },
         {
           "name": "GET /auth/me - Admin profile",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth","me"] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
             "description": "Requires admin JWT. src/modules/auth/routes.ts:32"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "me"
+                  ]
+                },
+                "description": "Requires admin JWT. src/modules/auth/routes.ts:32"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"admin\": {\n    \"id\": \"46a4c94d-a09a-40f4-b021-afabb2b5766e\",\n    \"email\": \"admin@gigdesk.local\",\n    \"fullName\": \"GigDesk Admin Updated\",\n    \"phone\": \"9876543210\",\n    \"status\": \"active\",\n    \"registeredAt\": \"2026-08-27T10:08:11.546Z\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "PATCH /auth/profile",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"GigDesk Admin Updated\",\n  \"phone\": \"9876543210\"\n}" },
-            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth","profile"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"GigDesk Admin Updated\",\n  \"phone\": \"9876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "profile"
+              ]
+            },
             "description": "src/modules/auth/schemas.ts:10 {fullName:1-120, phone:'' or 10 digits}"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"GigDesk Admin Updated\",\n  \"phone\": \"9876543210\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "profile"
+                  ]
+                },
+                "description": "src/modules/auth/schemas.ts:10 {fullName:1-120, phone:'' or 10 digits}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"admin\": {\n    \"id\": \"46a4c94d-a09a-40f4-b021-afabb2b5766e\",\n    \"fullName\": \"GigDesk Admin Updated\",\n    \"phone\": \"9876543210\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "POST /auth/change-password",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"admin@123\",\n  \"newPassword\": \"newAdmin@12345\"\n}" },
-            "url": { "raw": "{{baseUrl}}/auth/change-password", "host": ["{{baseUrl}}"], "path": ["auth","change-password"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"admin@123\",\n  \"newPassword\": \"newAdmin@12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "change-password"
+              ]
+            },
             "description": "src/modules/auth/schemas.ts:23 {currentPassword, newPassword:min8, must differ}"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"admin@123\",\n  \"newPassword\": \"newAdmin@12345\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/change-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "change-password"
+                  ]
+                },
+                "description": "src/modules/auth/schemas.ts:23 {currentPassword, newPassword:min8, must differ}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"message\": \"Password changed\"\n}"
+            }
+          ]
         }
       ]
     },
@@ -103,35 +480,218 @@
           "name": "POST /worker/register",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Rahul Kumar\",\n  \"phone\": \"+919800110002\",\n  \"city\": \"Hyderabad\",\n  \"area\": \"Gachibowli\",\n  \"pincode\": \"500032\",\n  \"idProofUrl\": \"https://example.com/id-proof.jpg\"\n}" },
-            "url": { "raw": "{{baseUrl}}/worker/register", "host": ["{{baseUrl}}"], "path": ["worker","register"] },
-            "description": "registerSchema: fullName 3-120, phone +91XXXXXXXXXX, city, area, pincode 6 digits, idProofUrl url. 201 on success."
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"surname\": \"Kumar\",\n  \"name\": \"Amit\",\n  \"phone\": \"9800110002\",\n  \"email\": \"amit.kumar@example.com\",\n  \"city\": \"Hyderabad\",\n  \"district\": \"Hyderabad\",\n  \"area\": \"Gachibowli\",\n  \"pincode\": \"500032\",\n  \"address\": \"H No 123, Gachibowli, Hyderabad\",\n  \"idProofUrl\": \"https://example.com/aadhaar.jpg\",\n  \"profilePhotoUrl\": \"https://example.com/profile.jpg\",\n  \"drivingLicenseUrl\": \"https://example.com/dl.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/worker/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "register"
+              ]
+            },
+            "description": "registerSchema: accepts surname+name OR fullName, phone plain 10-digit OR +91 (normalized), city,district,area,pincode 6 digits OR address, idProofUrl OR aadhaarUrl OR idProofKey, email, profilePhotoUrl, drivingLicenseUrl optional. City/area/pincode optional if address provided. Verified 201 {ok:true, id, status:'pending'}. src/modules/worker/schemas.ts:10 + service.ts:36"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success 201",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"surname\": \"Kumar\",\n  \"name\": \"Amit\",\n  \"phone\": \"9800110002\",\n  \"email\": \"amit.kumar@example.com\",\n  \"city\": \"Hyderabad\",\n  \"district\": \"Hyderabad\",\n  \"area\": \"Gachibowli\",\n  \"pincode\": \"500032\",\n  \"address\": \"H No 123, Gachibowli, Hyderabad\",\n  \"idProofUrl\": \"https://example.com/aadhaar.jpg\",\n  \"profilePhotoUrl\": \"https://example.com/profile.jpg\",\n  \"drivingLicenseUrl\": \"https://example.com/dl.jpg\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/worker/register",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "register"
+                  ]
+                },
+                "description": "registerSchema: accepts surname+name OR fullName, phone plain 10-digit OR +91 (normalized), city,district,area,pincode 6 digits OR address, idProofUrl OR aadhaarUrl OR idProofKey, email, profilePhotoUrl, drivingLicenseUrl optional. City/area/pincode optional if address provided. Verified 201 {ok:true, id, status:'pending'}. src/modules/worker/schemas.ts:10 + service.ts:36"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"id\": \"3da5cf60-8428-48ab-9ff5-9020d9cb3e91\",\n  \"status\": \"pending\"\n}"
+            }
+          ]
         },
         {
           "name": "POST /worker/otp/request",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+919800110002\"\n}" },
-            "url": { "raw": "{{baseUrl}}/worker/otp/request", "host": ["{{baseUrl}}"], "path": ["worker","otp","request"] },
-            "description": "src/modules/worker-auth/schemas.ts:10 {phone:+91...} OTP hashed in auth_otps"
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9800110002\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/worker/otp/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "otp",
+                "request"
+              ]
+            },
+            "description": "phoneSchema accepts plain 10-digit '9800110002' OR '+91 98001 10002' OR '+919800110002' -> normalized +91XXXXXXXXXX. src/modules/worker-auth/schemas.ts:4. 200 {ok:true, sent:true, devCode:'274187'} in non-production (shown for test)."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"phone\": \"9800110002\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/worker/otp/request",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "otp",
+                    "request"
+                  ]
+                },
+                "description": "phoneSchema accepts plain 10-digit '9800110002' OR '+91 98001 10002' OR '+919800110002' -> normalized +91XXXXXXXXXX. src/modules/worker-auth/schemas.ts:4. 200 {ok:true, sent:true, devCode:'274187'} in non-production (shown for test)."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"sent\": true,\n  \"devCode\": \"274187\"\n}"
+            }
+          ]
         },
         {
           "name": "POST /worker/otp/verify - Worker login",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"+919800110002\",\n  \"code\": \"123456\"\n}" },
-            "url": { "raw": "{{baseUrl}}/worker/otp/verify", "host": ["{{baseUrl}}"], "path": ["worker","otp","verify"] },
-            "description": "src/modules/worker-auth/schemas.ts:14 {phone, code:6 digits} -> worker JWT. Auto-set {{workerToken}}."
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+919800110002\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/worker/otp/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "otp",
+                "verify"
+              ]
+            },
+            "description": "If phone registered -> 200 {ok:true, token: worker JWT, requiresRegistration:false, worker:{id,fullName,status}} ; if phone NOT registered -> 200 {ok:true, token: pre-worker JWT 10m, requiresRegistration:true, phone, worker:null} . Verified for both. src/modules/worker-auth/service.ts:34"
           },
-          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json();","if(json.token){ pm.collectionVariables.set('workerToken', json.token); }"], "type": "text/javascript" } }],
-          "response": []
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if(json.token){ pm.collectionVariables.set('workerToken', json.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"phone\": \"+919800110002\",\n  \"code\": \"123456\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/worker/otp/verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "otp",
+                    "verify"
+                  ]
+                },
+                "description": "If phone registered -> 200 {ok:true, token: worker JWT, requiresRegistration:false, worker:{id,fullName,status}} ; if phone NOT registered -> 200 {ok:true, token: pre-worker JWT 10m, requiresRegistration:true, phone, worker:null} . Verified for both. src/modules/worker-auth/service.ts:34"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9...\",\n  \"requiresRegistration\": false,\n  \"worker\": {\n    \"id\": \"6591f564-a232-4b3c-967f-a2f49f0f001a\",\n    \"fullName\": \"Ramesh Gupta\",\n    \"status\": \"approved\"\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -143,23 +703,135 @@
           "name": "POST /uploads/presign - id-proof",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"kind\": \"id-proof\",\n  \"contentType\": \"image/jpeg\"\n}" },
-            "url": { "raw": "{{baseUrl}}/uploads/presign", "host": ["{{baseUrl}}"], "path": ["uploads","presign"] },
-            "description": "Returns presigned PUT URL. 503 if S3 env not set."
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"id-proof\",\n  \"contentType\": \"image/jpeg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/uploads/presign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "presign"
+              ]
+            },
+            "description": "Public presign. kind id-proof|completion-photo, contentType image/jpeg|png|webp. Returns mock when S3 not configured (no 503). Verified 200 {ok:true, uploadUrl:'https://mock-storage.gigdesk.local/...?mockPresigned=1', key, expiresIn:300, mock:true}. src/modules/uploads/service.ts:22"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"id-proof\",\n  \"contentType\": \"image/jpeg\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/uploads/presign",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "uploads",
+                    "presign"
+                  ]
+                },
+                "description": "Public presign. kind id-proof|completion-photo, contentType image/jpeg|png|webp. Returns mock when S3 not configured (no 503). Verified 200 {ok:true, uploadUrl:'https://mock-storage.gigdesk.local/...?mockPresigned=1', key, expiresIn:300, mock:true}. src/modules/uploads/service.ts:22"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"uploadUrl\": \"https://mock-storage.gigdesk.local/id-proof/2026-08-31/a755ad84-a9d2-40c5-906b-86ac4b6d97dc.jpg?mockPresigned=1\",\n  \"key\": \"id-proof/2026-08-31/a755ad84-a9d2-40c5-906b-86ac4b6d97dc.jpg\",\n  \"expiresIn\": 300,\n  \"mock\": true\n}"
+            }
+          ]
         },
         {
           "name": "POST /uploads/presign - completion-photo",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"kind\": \"completion-photo\",\n  \"contentType\": \"image/png\"\n}" },
-            "url": { "raw": "{{baseUrl}}/uploads/presign", "host": ["{{baseUrl}}"], "path": ["uploads","presign"] },
-            "description": "kind: completion-photo for worker assignment complete"
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"completion-photo\",\n  \"contentType\": \"image/png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/uploads/presign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "presign"
+              ]
+            },
+            "description": "kind completion-photo, contentType image/png. Mock fallback as above."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"completion-photo\",\n  \"contentType\": \"image/png\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/uploads/presign",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "uploads",
+                    "presign"
+                  ]
+                },
+                "description": "kind completion-photo, contentType image/png. Mock fallback as above."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"uploadUrl\": \"https://mock-storage.gigdesk.local/completion-photo/2026-08-31/5a2399a9-5dee-453b-b5bd-449eabc9d591.png?mockPresigned=1\",\n  \"key\": \"completion-photo/2026-08-31/5a2399a9-5dee-453b-b5bd-449eabc9d591.png\",\n  \"expiresIn\": 300,\n  \"mock\": true\n}"
+            }
+          ]
         }
       ]
     },
@@ -169,49 +841,1071 @@
       "item": [
         {
           "name": "GET /worker/me",
-          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/me", "host": ["{{baseUrl}}"], "path": ["worker","me"] }, "description": "Own profile + status" },
-          "response": []
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "me"
+              ]
+            },
+            "description": "Requires worker JWT (or pending worker JWT). Returns extended fields: email, district, address, profilePhotoUrl, drivingLicenseUrl, isAvailable, lastLat/lng. src/modules/worker/service.ts:91"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "me"
+                  ]
+                },
+                "description": "Requires worker JWT (or pending worker JWT). Returns extended fields: email, district, address, profilePhotoUrl, drivingLicenseUrl, isAvailable, lastLat/lng. src/modules/worker/service.ts:91"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"worker\": {\n    \"id\": \"682c95d0-71de-4c23-8e8d-1d9d4b2b0a5c\",\n    \"fullName\": \"Test Flutter\",\n    \"phone\": \"+919800110991\",\n    \"email\": \"t@e.com\",\n    \"city\": \"Hyderabad\",\n    \"district\": \"Hyderabad\",\n    \"area\": \"Gachibowli\",\n    \"pincode\": \"500032\",\n    \"address\": \"H 123\",\n    \"idProofUrl\": \"https://example.com/a.jpg\",\n    \"profilePhotoUrl\": \"https://example.com/p.jpg\",\n    \"drivingLicenseUrl\": null,\n    \"isAvailable\": false,\n    \"lastLat\": null,\n    \"lastLng\": null,\n    \"status\": \"pending\",\n    \"registeredAt\": \"2026-08-31T06:40:05.638Z\",\n    \"rejectionReason\": null\n  }\n}"
+            }
+          ]
         },
         {
           "name": "PATCH /worker/me",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{workerToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Rahul K\",\n  \"city\": \"Hyderabad\",\n  \"area\": \"Madhapur\",\n  \"pincode\": \"500081\"\n}" },
-            "url": { "raw": "{{baseUrl}}/worker/me", "host": ["{{baseUrl}}"], "path": ["worker","me"] },
-            "description": "updateMeSchema all optional: fullName 3-120, city, area, pincode 6 digits"
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Rahul K\",\n  \"city\": \"Hyderabad\",\n  \"district\": \"Hyderabad\",\n  \"area\": \"Madhapur\",\n  \"pincode\": \"500081\",\n  \"address\": \"H 123 Madhapur\",\n  \"isAvailable\": true,\n  \"lastLat\": 17.44,\n  \"lastLng\": 78.35\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/worker/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "me"
+              ]
+            },
+            "description": "All optional: fullName 3-120, city, district, area, pincode 6 digits, address, isAvailable boolean, lastLat -90..90, lastLng -180..180. src/modules/worker/schemas.ts:19"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fullName\": \"Rahul K\",\n  \"city\": \"Hyderabad\",\n  \"district\": \"Hyderabad\",\n  \"area\": \"Madhapur\",\n  \"pincode\": \"500081\",\n  \"address\": \"H 123 Madhapur\",\n  \"isAvailable\": true,\n  \"lastLat\": 17.44,\n  \"lastLng\": 78.35\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/worker/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "me"
+                  ]
+                },
+                "description": "All optional: fullName 3-120, city, district, area, pincode 6 digits, address, isAvailable boolean, lastLat -90..90, lastLng -180..180. src/modules/worker/schemas.ts:19"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"worker\": {\n    \"id\": \"6591f564-a232-4b3c-967f-a2f49f0f001a\",\n    \"fullName\": \"Rahul K\",\n    \"city\": \"Hyderabad\",\n    \"area\": \"Madhapur\",\n    \"pincode\": \"500081\",\n    \"isAvailable\": true\n  }\n}"
+            }
+          ]
         },
-        { "name": "GET /worker/home", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/home", "host": ["{{baseUrl}}"], "path": ["worker","home"] }, "description": "Summary: status, active job, earnings, unread notifications" }, "response": [] },
-        { "name": "GET /worker/jobs/available", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/jobs/available", "host": ["{{baseUrl}}"], "path": ["worker","jobs","available"] }, "description": "Open jobs in worker pincode, only if approved" }, "response": [] },
-        { "name": "GET /worker/jobs/:id", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/jobs/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["worker","jobs","{{jobId}}"] }, "description": "id uuid required" }, "response": [] },
+        {
+          "name": "GET /worker/home",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/home",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "home"
+              ]
+            },
+            "description": "Summary: status, active job, earnings, unread notifications"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/home",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "home"
+                  ]
+                },
+                "description": "Summary: status, active job, earnings, unread notifications"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"worker\": {\n    \"id\": \"6591...\",\n    \"fullName\": \"Ramesh Gupta\",\n    \"phone\": \"+919800110001\",\n    \"email\": null,\n    \"city\": \"Bengaluru\",\n    \"district\": \"Bengaluru Urban\",\n    \"area\": \"MG Road\",\n    \"pincode\": \"560001\",\n    \"address\": null,\n    \"idProofUrl\": \"https://...\",\n    \"profilePhotoUrl\": null,\n    \"isAvailable\": true,\n    \"lastLat\": 17.44,\n    \"lastLng\": 78.35,\n    \"status\": \"approved\",\n    \"registeredAt\": \"2026-08-17T10:08:11.360Z\",\n    \"rejectionReason\": null\n  },\n  \"activeJob\": {\n    \"assignmentId\": \"8ff88ab6-1bcc-40ca-ba36-8c51d27d8e33\",\n    \"jobId\": \"60ec7e86-0aa2-4d81-a322-df780c721c68\",\n    \"jobTitle\": \"Billboard cleaning\",\n    \"jobArea\": \"MG Road\",\n    \"jobPincode\": \"560001\",\n    \"payAmountInr\": 550,\n    \"assignedAt\": \"2026-08-26T14:08:11.839Z\"\n  },\n  \"earnings\": {\n    \"paidTotal\": 0,\n    \"pendingTotal\": 0\n  },\n  \"unreadNotifications\": 3\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/jobs/available",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/jobs/available",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "jobs",
+                "available"
+              ]
+            },
+            "description": "Open jobs in worker pincode, only if approved. Pending worker → 403 {error:'Your registration is not approved yet'}. Approved returns items with district,deadlineAt,lat,lng,myPendingRequestId. src/modules/worker/service.ts:172"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/jobs/available",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "jobs",
+                    "available"
+                  ]
+                },
+                "description": "Open jobs in worker pincode, only if approved. Pending worker → 403 {error:'Your registration is not approved yet'}. Approved returns items with district,deadlineAt,lat,lng,myPendingRequestId. src/modules/worker/service.ts:172"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"c8812ab4-87ea-4a1d-b327-1b547355d7b3\",\n      \"title\": \"Test deadline\",\n      \"description\": \"test\",\n      \"city\": \"Bengaluru\",\n      \"district\": \"Bengaluru Urban\",\n      \"area\": \"MG Road\",\n      \"pincode\": \"560001\",\n      \"payAmountInr\": 800,\n      \"durationHours\": 48,\n      \"deadlineAt\": \"2026-08-29T11:38:10.263Z\",\n      \"lat\": null,\n      \"lng\": null,\n      \"createdAt\": \"2026-08-27T11:38:11.645Z\",\n      \"myPendingRequestId\": null\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/jobs/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/jobs/{{jobId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "jobs",
+                "{{jobId}}"
+              ]
+            },
+            "description": "id uuid required"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/jobs/{{jobId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "jobs",
+                    "{{jobId}}"
+                  ]
+                },
+                "description": "id uuid required"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"job\": {\n    \"id\": \"c8812ab4-87ea-4a1d-b327-1b547355d7b3\",\n    \"title\": \"Test deadline\",\n    \"description\": \"test\",\n    \"city\": \"Bengaluru\",\n    \"area\": \"MG Road\",\n    \"pincode\": \"560001\",\n    \"payAmountInr\": 800,\n    \"durationHours\": 48,\n    \"status\": \"open\",\n    \"createdAt\": \"2026-08-27T11:38:11.645Z\"\n  },\n  \"myRequest\": null\n}"
+            }
+          ]
+        },
         {
           "name": "POST /worker/jobs/:id/request - Request job",
-          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/jobs/{{jobId}}/request", "host": ["{{baseUrl}}"], "path": ["worker","jobs","{{jobId}}","request"] }, "description": "No body. Checks approved + same pincode + job open + no duplicate" },
-          "response": []
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/jobs/{{jobId}}/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "jobs",
+                "{{jobId}}",
+                "request"
+              ]
+            },
+            "description": "No body. Checks approved + same pincode + job open + no duplicate"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/jobs/{{jobId}}/request",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "jobs",
+                    "{{jobId}}",
+                    "request"
+                  ]
+                },
+                "description": "No body. Checks approved + same pincode + job open + no duplicate"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"requestId\": \"4fa8a303-38c0-4c6b-a57b-01d8d55cf79d\",\n  \"status\": \"pending\",\n  \"requestedAt\": \"2026-08-31T05:57:44.533Z\"\n}"
+            }
+          ]
         },
-        { "name": "GET /worker/requests", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/requests", "host": ["{{baseUrl}}"], "path": ["worker","requests"] }, "description": "Own request history" }, "response": [] },
-        { "name": "GET /worker/assignments", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/assignments", "host": ["{{baseUrl}}"], "path": ["worker","assignments"] }, "description": "Own assignment history" }, "response": [] },
-        { "name": "GET /worker/assignments/active", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/assignments/active", "host": ["{{baseUrl}}"], "path": ["worker","assignments","active"] }, "description": "Current active assignment or null" }, "response": [] },
+        {
+          "name": "GET /worker/requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "requests"
+              ]
+            },
+            "description": "Own request history"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/requests",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "requests"
+                  ]
+                },
+                "description": "Own request history"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"4fa8a303-38c0-4c6b-a57b-01d8d55cf79d\",\n      \"status\": \"approved\",\n      \"jobTitle\": \"Flush test job\",\n      \"requestedAt\": \"2026-08-31T05:57:44.533Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "assignments"
+              ]
+            },
+            "description": "Own assignment history"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/assignments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "assignments"
+                  ]
+                },
+                "description": "Own assignment history"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"5c1862ee-7d90-400d-9091-82e55c09b514\",\n      \"status\": \"active\",\n      \"jobTitle\": \"Flush test job\",\n      \"assignedAt\": \"2026-08-31T05:57:45.845Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/assignments/active",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/assignments/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "assignments",
+                "active"
+              ]
+            },
+            "description": "Current active assignment or null"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/assignments/active",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "assignments",
+                    "active"
+                  ]
+                },
+                "description": "Current active assignment or null"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"assignment\": {\n    \"assignmentId\": \"5c1862ee-7d90-400d-9091-82e55c09b514\",\n    \"jobId\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n    \"jobTitle\": \"Flush test job\",\n    \"payAmountInr\": 999,\n    \"assignedAt\": \"2026-08-31T05:57:45.845Z\"\n  }\n}"
+            }
+          ]
+        },
         {
           "name": "POST /worker/assignments/:id/complete",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{workerToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"proofPhotoUrl\": \"https://example.com/completion.jpg\"\n}" },
-            "url": { "raw": "{{baseUrl}}/worker/assignments/{{assignmentId}}/complete", "host": ["{{baseUrl}}"], "path": ["worker","assignments","{{assignmentId}}","complete"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proofPhotoUrl\": \"https://example.com/completion.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/worker/assignments/{{assignmentId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "assignments",
+                "{{assignmentId}}",
+                "complete"
+              ]
+            },
             "description": "completeSchema {proofPhotoUrl: url required}"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"proofPhotoUrl\": \"https://example.com/completion.jpg\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/worker/assignments/{{assignmentId}}/complete",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "assignments",
+                    "{{assignmentId}}",
+                    "complete"
+                  ]
+                },
+                "description": "completeSchema {proofPhotoUrl: url required}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"jobId\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n  \"jobStatus\": \"completed\",\n  \"completedAt\": \"2026-08-31T05:57:47.338Z\",\n  \"payoutAmountInr\": 999\n}"
+            }
+          ]
         },
-        { "name": "GET /worker/earnings", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/earnings", "host": ["{{baseUrl}}"], "path": ["worker","earnings"] }, "description": "Payout list + totals pending vs paid" }, "response": [] },
-        { "name": "GET /worker/performance", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/performance", "host": ["{{baseUrl}}"], "path": ["worker","performance"] }, "description": "Completed count, cancellations, lifetime earnings" }, "response": [] },
-        { "name": "GET /worker/area", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/area", "host": ["{{baseUrl}}"], "path": ["worker","area"] }, "description": "Own serviceable area city/area/pincode" }, "response": [] },
-        { "name": "GET /worker/notifications", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/notifications?unread=true", "host": ["{{baseUrl}}"], "path": ["worker","notifications"], "query": [{ "key": "unread", "value": "true" }] }, "description": "Query unread=1|true filters unread only" }, "response": [] },
-        { "name": "GET /worker/notifications - all", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/notifications", "host": ["{{baseUrl}}"], "path": ["worker","notifications"] }, "description": "All notifications" }, "response": [] },
-        { "name": "POST /worker/notifications/read-all", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["worker","notifications","read-all"] }, "description": "Mark all read" }, "response": [] },
-        { "name": "POST /worker/notifications/:id/read", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }], "url": { "raw": "{{baseUrl}}/worker/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["worker","notifications","{{notificationId}}","read"] }, "description": "Mark one read, id uuid" }, "response": [] }
+        {
+          "name": "GET /worker/earnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/earnings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "earnings"
+              ]
+            },
+            "description": "Payout list + totals pending vs paid"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/earnings",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "earnings"
+                  ]
+                },
+                "description": "Payout list + totals pending vs paid"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"9d9f61b9-0e53-47f3-ac20-6de209290042\",\n      \"amountInr\": 999,\n      \"status\": \"pending\",\n      \"createdAt\": \"2026-08-31T05:57:47.677Z\",\n      \"paidAt\": null,\n      \"jobTitle\": \"Flush test job\",\n      \"jobArea\": \"MG Road\",\n      \"completedAt\": \"2026-08-31T05:57:47.338Z\"\n    }\n  ],\n  \"paidTotal\": 0,\n  \"pendingTotal\": 999\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/performance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "performance"
+              ]
+            },
+            "description": "Completed count, cancellations, lifetime earnings"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/performance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "performance"
+                  ]
+                },
+                "description": "Completed count, cancellations, lifetime earnings"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"completedJobs\": 1,\n  \"cancelledAssignments\": 0,\n  \"paidTotal\": 0,\n  \"pendingTotal\": 999\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/area",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/area",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "area"
+              ]
+            },
+            "description": "Own serviceable area city/area/pincode"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/area",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "area"
+                  ]
+                },
+                "description": "Own serviceable area city/area/pincode"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"area\": {\n    \"city\": \"Bengaluru\",\n    \"area\": \"MG Road\",\n    \"pincode\": \"560001\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/notifications?unread=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "unread",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Query unread=1|true filters unread only"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/notifications?unread=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "notifications"
+                  ],
+                  "query": [
+                    {
+                      "key": "unread",
+                      "value": "true"
+                    }
+                  ]
+                },
+                "description": "Query unread=1|true filters unread only"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"98e9b41f-8e16-4750-bcb2-80aab697f0e6\",\n      \"type\": \"request.approved\",\n      \"title\": \"Request approved\",\n      \"body\": \"You are assigned to \\\"Flush test job\\\".\",\n      \"jobId\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n      \"readAt\": null,\n      \"createdAt\": \"2026-08-31T05:57:45.845Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /worker/notifications - all",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "notifications"
+              ]
+            },
+            "description": "All notifications"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/notifications",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "notifications"
+                  ]
+                },
+                "description": "All notifications"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"98e9b41f-8e16-4750-bcb2-80aab697f0e6\",\n      \"type\": \"request.approved\",\n      \"title\": \"Request approved\",\n      \"jobId\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n      \"readAt\": null\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /worker/notifications/read-all",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Mark all read"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/notifications/read-all",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "notifications",
+                    "read-all"
+                  ]
+                },
+                "description": "Mark all read"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"marked\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /worker/notifications/:id/read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{workerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/worker/notifications/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "worker",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": "Mark one read, id uuid"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{workerToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/worker/notifications/{{notificationId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "worker",
+                    "notifications",
+                    "{{notificationId}}",
+                    "read"
+                  ]
+                },
+                "description": "Mark one read, id uuid"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"id\": \"98e9b41f-8e16-4750-bcb2-80aab697f0e6\"\n}"
+            }
+          ]
+        }
       ]
     },
     {
@@ -222,34 +1916,333 @@
           "name": "GET /admin/workers - List",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/admin/workers?status=pending&city=Hyderabad&pincode=500032&search=Rahul&page=1&pageSize=15", "host": ["{{baseUrl}}"], "path": ["admin","workers"], "query": [{ "key": "status", "value": "pending", "description": "pending|approved|rejected" }, { "key": "city", "value": "Hyderabad" }, { "key": "pincode", "value": "500032" }, { "key": "search", "value": "Rahul" }, { "key": "page", "value": "1" }, { "key": "pageSize", "value": "15" }] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/workers?status=pending&city=Hyderabad&pincode=500032&search=Rahul&page=1&pageSize=15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "workers"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending|approved|rejected"
+                },
+                {
+                  "key": "city",
+                  "value": "Hyderabad"
+                },
+                {
+                  "key": "pincode",
+                  "value": "500032"
+                },
+                {
+                  "key": "search",
+                  "value": "Rahul"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "15"
+                }
+              ]
+            },
             "description": "listWorkersQuerySchema status, city, district, pincode, search, page, pageSize"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/workers?status=pending&city=Hyderabad&pincode=500032&search=Rahul&page=1&pageSize=15",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "workers"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending",
+                      "description": "pending|approved|rejected"
+                    },
+                    {
+                      "key": "city",
+                      "value": "Hyderabad"
+                    },
+                    {
+                      "key": "pincode",
+                      "value": "500032"
+                    },
+                    {
+                      "key": "search",
+                      "value": "Rahul"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "listWorkersQuerySchema status, city, district, pincode, search, page, pageSize"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"3da5cf60-8428-48ab-9ff5-9020d9cb3e91\",\n      \"fullName\": \"Kumar Amit\",\n      \"phone\": \"+919800110099\",\n      \"email\": \"amit.kumar@example.com\",\n      \"city\": \"Hyderabad\",\n      \"district\": \"Hyderabad\",\n      \"area\": \"Gachibowli\",\n      \"pincode\": \"500032\",\n      \"address\": \"H No 123\",\n      \"idProofUrl\": \"https://example.com/aadhaar.jpg\",\n      \"profilePhotoUrl\": \"https://example.com/profile.jpg\",\n      \"drivingLicenseUrl\": null,\n      \"isAvailable\": false,\n      \"status\": \"pending\",\n      \"registeredAt\": \"2026-08-31T05:56:50.266Z\",\n      \"reviewedAt\": null\n    }\n  ],\n  \"total\": 1,\n  \"page\": 1,\n  \"pageSize\": 15,\n  \"totalPages\": 1\n}"
+            }
+          ]
         },
-        { "name": "GET /admin/workers/:id", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/workers/{{workerId}}", "host": ["{{baseUrl}}"], "path": ["admin","workers","{{workerId}}"] }, "description": "Full detail" }, "response": [] },
+        {
+          "name": "GET /admin/workers/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/workers/{{workerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "workers",
+                "{{workerId}}"
+              ]
+            },
+            "description": "Full detail"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/workers/{{workerId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "workers",
+                    "{{workerId}}"
+                  ]
+                },
+                "description": "Full detail"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"worker\": {\n    \"id\": \"3da5cf60-8428-48ab-9ff5-9020d9cb3e91\",\n    \"fullName\": \"Kumar Amit\",\n    \"phone\": \"+919800110099\",\n    \"city\": \"Hyderabad\",\n    \"area\": \"Gachibowli\",\n    \"pincode\": \"500032\",\n    \"idProofUrl\": \"https://...\",\n    \"status\": \"pending\",\n    \"registeredAt\": \"2026-08-31T05:56:50.266Z\"\n  }\n}"
+            }
+          ]
+        },
         {
           "name": "POST /admin/workers/:id/review - Approve",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"decision\": \"approve\"\n}" },
-            "url": { "raw": "{{baseUrl}}/admin/workers/{{workerId}}/review", "host": ["{{baseUrl}}"], "path": ["admin","workers","{{workerId}}","review"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/workers/{{workerId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "workers",
+                "{{workerId}}",
+                "review"
+              ]
+            },
             "description": "reviewSchema decision approve|reject, reason required if reject"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"decision\": \"approve\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/workers/{{workerId}}/review",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "workers",
+                    "{{workerId}}",
+                    "review"
+                  ]
+                },
+                "description": "reviewSchema decision approve|reject, reason required if reject"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"worker\": {\n    \"id\": \"3da5cf60-8428-48ab-9ff5-9020d9cb3e91\",\n    \"fullName\": \"Kumar Amit\",\n    \"status\": \"approved\",\n    \"reviewedAt\": \"2026-08-31T05:57:41.173Z\",\n    \"rejectionReason\": null\n  }\n}"
+            }
+          ]
         },
         {
           "name": "POST /admin/workers/:id/review - Reject",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"decision\": \"reject\",\n  \"reason\": \"ID proof unclear, please resubmit\"\n}" },
-            "url": { "raw": "{{baseUrl}}/admin/workers/{{workerId}}/review", "host": ["{{baseUrl}}"], "path": ["admin","workers","{{workerId}}","review"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"reject\",\n  \"reason\": \"ID proof unclear, please resubmit\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/workers/{{workerId}}/review",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "workers",
+                "{{workerId}}",
+                "review"
+              ]
+            },
             "description": "Reject requires reason"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"decision\": \"reject\",\n  \"reason\": \"ID proof unclear, please resubmit\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/workers/{{workerId}}/review",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "workers",
+                    "{{workerId}}",
+                    "review"
+                  ]
+                },
+                "description": "Reject requires reason"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"worker\": {\n    \"id\": \"3da5cf60-8428-48ab-9ff5-9020d9cb3e91\",\n    \"fullName\": \"Kumar Amit\",\n    \"status\": \"rejected\",\n    \"reviewedAt\": \"2026-08-31T05:57:41.173Z\",\n    \"rejectionReason\": \"ID proof unclear\"\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -261,34 +2254,321 @@
           "name": "POST /admin/jobs - Create",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Office Cleaning - Gachibowli\",\n  \"description\": \"Need cleaning for 2BHK\",\n  \"city\": \"Hyderabad\",\n  \"district\": \"Hyderabad\",\n  \"area\": \"Gachibowli\",\n  \"pincode\": \"500032\",\n  \"payAmountInr\": 1500,\n  \"deadline\": \"2026-09-10T10:00:00.000Z\"\n}" },
-            "url": { "raw": "{{baseUrl}}/admin/jobs", "host": ["{{baseUrl}}"], "path": ["admin","jobs"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Office Cleaning - Gachibowli\",\n  \"description\": \"Need cleaning for 2BHK\",\n  \"city\": \"Hyderabad\",\n  \"district\": \"Hyderabad\",\n  \"area\": \"Gachibowli\",\n  \"pincode\": \"500032\",\n  \"payAmountInr\": 1500,\n  \"deadline\": \"2026-09-10T10:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/jobs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "jobs"
+              ]
+            },
             "description": "createJobSchema title 3-200, description 0-2000, city, district optional, area, pincode 6 digits, payAmountInr positive int, deadline future date. 201."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 201",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Office Cleaning - Gachibowli\",\n  \"description\": \"Need cleaning for 2BHK\",\n  \"city\": \"Hyderabad\",\n  \"district\": \"Hyderabad\",\n  \"area\": \"Gachibowli\",\n  \"pincode\": \"500032\",\n  \"payAmountInr\": 1500,\n  \"deadline\": \"2026-09-10T10:00:00.000Z\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/jobs",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "jobs"
+                  ]
+                },
+                "description": "createJobSchema title 3-200, description 0-2000, city, district optional, area, pincode 6 digits, payAmountInr positive int, deadline future date. 201."
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"job\": {\n    \"id\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n    \"title\": \"Office Cleaning - Gachibowli\",\n    \"city\": \"Hyderabad\",\n    \"district\": \"Hyderabad\",\n    \"area\": \"Gachibowli\",\n    \"pincode\": \"500032\",\n    \"payAmountInr\": 1500,\n    \"status\": \"open\",\n    \"createdAt\": \"2026-08-31T05:57:43.742Z\",\n    \"deadlineAt\": \"2026-09-01T05:57:42.418Z\",\n    \"lat\": 17.4436,\n    \"lng\": 78.3519\n  }\n}"
+            }
+          ]
         },
         {
           "name": "GET /admin/jobs - List",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/admin/jobs?status=open&city=Hyderabad&search=Cleaning&page=1&pageSize=15", "host": ["{{baseUrl}}"], "path": ["admin","jobs"], "query": [{ "key": "status", "value": "open", "description": "open|assigned|completed|cancelled" }, { "key": "city", "value": "Hyderabad" }, { "key": "search", "value": "Cleaning" }, { "key": "page", "value": "1" }, { "key": "pageSize", "value": "15" }] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/jobs?status=open&city=Hyderabad&search=Cleaning&page=1&pageSize=15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "open",
+                  "description": "open|assigned|completed|cancelled"
+                },
+                {
+                  "key": "city",
+                  "value": "Hyderabad"
+                },
+                {
+                  "key": "search",
+                  "value": "Cleaning"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "15"
+                }
+              ]
+            },
             "description": "listJobsQuerySchema status, city, district, pincode, search, workerId, assignedWorkerId, page, pageSize"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/jobs?status=open&city=Hyderabad&search=Cleaning&page=1&pageSize=15",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "jobs"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "open",
+                      "description": "open|assigned|completed|cancelled"
+                    },
+                    {
+                      "key": "city",
+                      "value": "Hyderabad"
+                    },
+                    {
+                      "key": "search",
+                      "value": "Cleaning"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "listJobsQuerySchema status, city, district, pincode, search, workerId, assignedWorkerId, page, pageSize"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n      \"title\": \"Office Cleaning\",\n      \"city\": \"Hyderabad\",\n      \"area\": \"Gachibowli\",\n      \"pincode\": \"500032\",\n      \"payAmountInr\": 1500,\n      \"status\": \"open\",\n      \"pendingRequests\": 0\n    }\n  ],\n  \"total\": 1,\n  \"page\": 1,\n  \"pageSize\": 15,\n  \"totalPages\": 1\n}"
+            }
+          ]
         },
-        { "name": "GET /admin/jobs/:id", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/jobs/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["admin","jobs","{{jobId}}"] }, "description": "Detail + timeline" }, "response": [] },
+        {
+          "name": "GET /admin/jobs/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/jobs/{{jobId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "jobs",
+                "{{jobId}}"
+              ]
+            },
+            "description": "Detail + timeline"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/jobs/{{jobId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "jobs",
+                    "{{jobId}}"
+                  ]
+                },
+                "description": "Detail + timeline"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"job\": {\n    \"id\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n    \"title\": \"Flush test job\",\n    \"status\": \"open\",\n    \"city\": \"Hyderabad\",\n    \"area\": \"MG Road\",\n    \"pincode\": \"500032\",\n    \"payAmountInr\": 999,\n    \"deadlineAt\": \"2026-09-01T05:57:42.418Z\",\n    \"assignedWorkerName\": null,\n    \"pendingRequests\": 0\n  },\n  \"requests\": [],\n  \"assignments\": []\n}"
+            }
+          ]
+        },
         {
           "name": "POST /admin/jobs/:id/cancel",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Client cancelled requirement\"\n}" },
-            "url": { "raw": "{{baseUrl}}/admin/jobs/{{jobId}}/cancel", "host": ["{{baseUrl}}"], "path": ["admin","jobs","{{jobId}}","cancel"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Client cancelled requirement\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/jobs/{{jobId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "jobs",
+                "{{jobId}}",
+                "cancel"
+              ]
+            },
             "description": "cancelJobSchema reason 1-500 required"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Client cancelled requirement\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/jobs/{{jobId}}/cancel",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "jobs",
+                    "{{jobId}}",
+                    "cancel"
+                  ]
+                },
+                "description": "cancelJobSchema reason 1-500 required"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"id\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n  \"status\": \"cancelled\",\n  \"cancelledAt\": \"2026-08-31T05:57:47.338Z\"\n}"
+            }
+          ]
         }
       ]
     },
@@ -300,14 +2580,217 @@
           "name": "GET /admin/requests - List",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/admin/requests?status=pending&page=1&pageSize=15", "host": ["{{baseUrl}}"], "path": ["admin","requests"], "query": [{ "key": "status", "value": "pending", "description": "pending|approved|rejected" }, { "key": "page", "value": "1" }, { "key": "pageSize", "value": "15" }] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/requests?status=pending&page=1&pageSize=15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending|approved|rejected"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "15"
+                }
+              ]
+            },
             "description": "listRequestsQuerySchema status, jobId uuid, workerId uuid, page, pageSize"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/requests?status=pending&page=1&pageSize=15",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "requests"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending",
+                      "description": "pending|approved|rejected"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "listRequestsQuerySchema status, jobId uuid, workerId uuid, page, pageSize"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"4fa8a303-38c0-4c6b-a57b-01d8d55cf79d\",\n      \"workerName\": \"Singh Raj\",\n      \"status\": \"pending\",\n      \"jobTitle\": \"Flush test job\",\n      \"requestedAt\": \"2026-08-31T05:57:44.533Z\"\n    }\n  ]\n}"
+            }
+          ]
         },
-        { "name": "POST /admin/requests/:id/approve", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/requests/{{requestId}}/approve", "host": ["{{baseUrl}}"], "path": ["admin","requests","{{requestId}}","approve"] }, "description": "Approve -> creates assignment, auto-rejects rival pendings" }, "response": [] },
-        { "name": "POST /admin/requests/:id/reject", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/requests/{{requestId}}/reject", "host": ["{{baseUrl}}"], "path": ["admin","requests","{{requestId}}","reject"] }, "description": "Reject request" }, "response": [] }
+        {
+          "name": "POST /admin/requests/:id/approve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/requests/{{requestId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "requests",
+                "{{requestId}}",
+                "approve"
+              ]
+            },
+            "description": "Approve -> creates assignment, auto-rejects rival pendings"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/requests/{{requestId}}/approve",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "requests",
+                    "{{requestId}}",
+                    "approve"
+                  ]
+                },
+                "description": "Approve -> creates assignment, auto-rejects rival pendings"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"requestId\": \"4fa8a303-38c0-4c6b-a57b-01d8d55cf79d\",\n  \"jobId\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n  \"workerId\": \"01df67e8-746e-4803-b268-6010ce8dcf7e\",\n  \"jobStatus\": \"assigned\",\n  \"assignedAt\": \"2026-08-31T05:57:45.845Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /admin/requests/:id/reject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/requests/{{requestId}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "requests",
+                "{{requestId}}",
+                "reject"
+              ]
+            },
+            "description": "Reject request"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/requests/{{requestId}}/reject",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "requests",
+                    "{{requestId}}",
+                    "reject"
+                  ]
+                },
+                "description": "Reject request"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"requestId\": \"4fa8a303-38c0-4c6b-a57b-01d8d55cf79d\",\n  \"status\": \"rejected\"\n}"
+            }
+          ]
+        }
       ]
     },
     {
@@ -318,14 +2801,142 @@
           "name": "POST /admin/assignments/assign - Direct assign",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "body": { "mode": "raw", "raw": "{\n  \"jobId\": \"{{jobId}}\",\n  \"workerId\": \"{{workerId}}\"\n}" },
-            "url": { "raw": "{{baseUrl}}/admin/assignments/assign", "host": ["{{baseUrl}}"], "path": ["admin","assignments","assign"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": \"{{jobId}}\",\n  \"workerId\": \"{{workerId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/assignments/assign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "assignments",
+                "assign"
+              ]
+            },
             "description": "Enforces approved worker + pincode match + job open"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"jobId\": \"{{jobId}}\",\n  \"workerId\": \"{{workerId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/assignments/assign",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "assignments",
+                    "assign"
+                  ]
+                },
+                "description": "Enforces approved worker + pincode match + job open"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"jobId\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n  \"workerId\": \"01df67e8-746e-4803-b268-6010ce8dcf7e\",\n  \"jobStatus\": \"assigned\",\n  \"assignedAt\": \"2026-08-31T05:57:45.845Z\"\n}"
+            }
+          ]
         },
-        { "name": "POST /admin/assignments/:id/cancel", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/assignments/{{assignmentId}}/cancel", "host": ["{{baseUrl}}"], "path": ["admin","assignments","{{assignmentId}}","cancel"] }, "description": "Cancel assignment -> job reopens" }, "response": [] }
+        {
+          "name": "POST /admin/assignments/:id/cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/assignments/{{assignmentId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "assignments",
+                "{{assignmentId}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancel assignment -> job reopens"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/assignments/{{assignmentId}}/cancel",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "assignments",
+                    "{{assignmentId}}",
+                    "cancel"
+                  ]
+                },
+                "description": "Cancel assignment -> job reopens"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"id\": \"5c1862ee-7d90-400d-9091-82e55c09b514\",\n  \"status\": \"cancelled\",\n  \"cancelledAt\": \"2026-08-31T05:57:47.338Z\"\n}"
+            }
+          ]
+        }
       ]
     },
     {
@@ -336,13 +2947,154 @@
           "name": "GET /admin/payouts - List",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/admin/payouts?status=pending&page=1&pageSize=15", "host": ["{{baseUrl}}"], "path": ["admin","payouts"], "query": [{ "key": "status", "value": "pending", "description": "pending|paid" }, { "key": "page", "value": "1" }, { "key": "pageSize", "value": "15" }] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/payouts?status=pending&page=1&pageSize=15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "payouts"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "pending|paid"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "15"
+                }
+              ]
+            },
             "description": "listPayoutsQuerySchema status pending|paid, workerId uuid, page, pageSize"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/payouts?status=pending&page=1&pageSize=15",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "payouts"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending",
+                      "description": "pending|paid"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "listPayoutsQuerySchema status pending|paid, workerId uuid, page, pageSize"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"9d9f61b9-0e53-47f3-ac20-6de209290042\",\n      \"jobTitle\": \"Flush test job\",\n      \"workerName\": \"Singh Raj\",\n      \"amountInr\": 999,\n      \"status\": \"pending\",\n      \"createdAt\": \"2026-08-31T05:57:47.677Z\",\n      \"paidAt\": null\n    }\n  ],\n  \"pendingAmountInr\": 5500,\n  \"paidAmountInr\": 2650\n}"
+            }
+          ]
         },
-        { "name": "POST /admin/payouts/:id/mark-paid", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/payouts/{{payoutId}}/mark-paid", "host": ["{{baseUrl}}"], "path": ["admin","payouts","{{payoutId}}","mark-paid"] }, "description": "Mark payout paid" }, "response": [] }
+        {
+          "name": "POST /admin/payouts/:id/mark-paid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/payouts/{{payoutId}}/mark-paid",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "payouts",
+                "{{payoutId}}",
+                "mark-paid"
+              ]
+            },
+            "description": "Mark payout paid"
+          },
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/payouts/{{payoutId}}/mark-paid",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "payouts",
+                    "{{payoutId}}",
+                    "mark-paid"
+                  ]
+                },
+                "description": "Mark payout paid"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"id\": \"9d9f61b9-0e53-47f3-ac20-6de209290042\",\n  \"status\": \"paid\",\n  \"paidAt\": \"2026-08-31T05:57:47.677Z\"\n}"
+            }
+          ]
+        }
       ]
     },
     {
@@ -353,11 +3105,88 @@
           "name": "GET /admin/events - List",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
-            "url": { "raw": "{{baseUrl}}/admin/events?type=job.created&page=1&pageSize=15", "host": ["{{baseUrl}}"], "path": ["admin","events"], "query": [{ "key": "type", "value": "job.created" }, { "key": "page", "value": "1" }, { "key": "pageSize", "value": "15" }] },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/events?type=job.created&page=1&pageSize=15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "job.created"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "15"
+                }
+              ]
+            },
             "description": "listEventsQuerySchema type, jobId uuid, status pending|processed, page, pageSize"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Verified 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/events?type=job.created&page=1&pageSize=15",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "events"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "job.created"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "15"
+                    }
+                  ]
+                },
+                "description": "listEventsQuerySchema type, jobId uuid, status pending|processed, page, pageSize"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"items\": [\n    {\n      \"id\": \"cad340f0-bf0a-4ee0-8ca7-f71e77f4ddb3\",\n      \"type\": \"job.created\",\n      \"jobId\": \"4fa6c4d1-39af-4438-b4d0-21449588ad7a\",\n      \"payload\": {\n        \"pincode\": \"500032\"\n      },\n      \"status\": \"pending\",\n      \"createdAt\": \"2026-08-31T05:57:43.742Z\"\n    }\n  ]\n}"
+            }
+          ]
         }
       ]
     },
@@ -365,14 +3194,132 @@
       "name": "12 Admin - Summary (requireAdmin)",
       "description": "src/modules/summary/routes.ts:7",
       "item": [
-        { "name": "GET /admin/summary", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/summary", "host": ["{{baseUrl}}"], "path": ["admin","summary"] }, "description": "Dashboard counts pending workers, open jobs, pending requests, payouts" }, "response": [] }
+        {
+          "name": "GET /admin/summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "summary"
+              ]
+            },
+            "description": "Dashboard counts pending workers, open jobs, pending requests, payouts"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/summary",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "summary"
+                  ]
+                },
+                "description": "Dashboard counts pending workers, open jobs, pending requests, payouts"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"workers\": {\n    \"pending\": 7,\n    \"approved\": 16,\n    \"rejected\": 3\n  },\n  \"jobs\": {\n    \"open\": 11,\n    \"assigned\": 6,\n    \"completed\": 13,\n    \"cancelled\": 2\n  },\n  \"pendingRequests\": 10,\n  \"payouts\": {\n    \"pendingCount\": 9,\n    \"pendingAmountInr\": 5500,\n    \"paidAmountInr\": 2650\n  }\n}"
+            }
+          ]
+        }
       ]
     },
     {
       "name": "13 Admin - Meta (requireAdmin)",
       "description": "src/modules/meta/routes.ts:7",
       "item": [
-        { "name": "GET /admin/meta/locations", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/admin/meta/locations", "host": ["{{baseUrl}}"], "path": ["admin","meta","locations"] }, "description": "List available cities/areas/pincodes" }, "response": [] }
+        {
+          "name": "GET /admin/meta/locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/meta/locations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "meta",
+                "locations"
+              ]
+            },
+            "description": "List available cities/areas/pincodes"
+          },
+          "response": [
+            {
+              "name": "Success 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/meta/locations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "meta",
+                    "locations"
+                  ]
+                },
+                "description": "List available cities/areas/pincodes"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"ok\": true,\n  \"cities\": [\n    \"Bengaluru\",\n    \"Hyderabad\",\n    \"Chennai\"\n  ],\n  \"districts\": [\n    \"Bengaluru Urban\",\n    \"Hyderabad\"\n  ],\n  \"areas\": [\n    \"MG Road\",\n    \"Gachibowli\"\n  ]\n}"
+            }
+          ]
+        }
       ]
     }
   ]
