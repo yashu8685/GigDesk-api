@@ -4,7 +4,7 @@ import argon2 from 'argon2'
 import { db } from '../../db/client.js'
 import { authOtps, users } from '../../db/schemas/index.js'
 import { env } from '../../config/env.js'
-import { badRequest, notFound, unauthorized } from '../../lib/http-error.js'
+import { badRequest, unauthorized } from '../../lib/http-error.js'
 import type { OtpRequestInput, OtpVerifyInput } from './schemas.js'
 
 const secret = new TextEncoder().encode(env.AUTH_SECRET)
@@ -77,7 +77,19 @@ export async function verifyOtp(input: OtpVerifyInput) {
     .limit(1)
 
   if (!workerUser) {
-    throw notFound('No worker registered with this phone')
+    // Flutter registers after OTP — allow unregistered phone to get a short-lived pre-worker token
+    const preToken = await new SignJWT({ role: 'pre-worker', phone: input.phone })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setSubject(input.phone)
+      .setIssuedAt()
+      .setExpirationTime('10m')
+      .sign(secret)
+    return {
+      token: preToken,
+      requiresRegistration: true as const,
+      phone: input.phone,
+      worker: null,
+    }
   }
 
   const token = await new SignJWT({ role: 'worker' })
@@ -89,6 +101,7 @@ export async function verifyOtp(input: OtpVerifyInput) {
 
   return {
     token,
+    requiresRegistration: false as const,
     worker: {
       id: workerUser.id,
       fullName: workerUser.fullName,

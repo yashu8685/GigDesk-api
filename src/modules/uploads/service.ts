@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { env } from '../../config/env.js'
-import { HttpError } from '../../lib/http-error.js'
 import type { PresignInput } from './schemas.js'
 
 function s3Configured(): boolean {
@@ -21,10 +20,11 @@ function s3Configured(): boolean {
  */
 export async function presignUpload(input: PresignInput) {
   if (!s3Configured()) {
-    throw new HttpError(
-      503,
-      'Object storage is not configured (set S3_* environment variables)',
-    )
+    // Dev fallback for Flutter without S3 — return a deterministic mock key that the API will accept as a URL proof
+    const ext = input.contentType === 'image/png' ? 'png' : input.contentType === 'image/webp' ? 'webp' : 'jpg'
+    const key = `${input.kind}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}.${ext}`
+    const mockBase = 'https://mock-storage.gigdesk.local'
+    return { uploadUrl: `${mockBase}/${key}?mockPresigned=1`, key, expiresIn: 300, mock: true as const }
   }
 
   const client = new S3Client({

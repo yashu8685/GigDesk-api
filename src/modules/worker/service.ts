@@ -34,33 +34,54 @@ async function requireApprovedWorker(workerId: string) {
 }
 
 export async function register(input: RegisterInput) {
+  const rawPhone = (input as unknown as { mobile?: string }).mobile ?? input.phone
+  const phone = rawPhone as string
   const existing = await db
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.phone, input.phone), eq(users.userType, 'worker')))
+    .where(and(eq(users.phone, phone), eq(users.userType, 'worker')))
     .limit(1)
   if (existing.length > 0) {
     throw conflict('This phone number is already registered')
   }
+
+  const fullName =
+    (input.fullName && input.fullName.trim().length >= 3
+      ? input.fullName.trim()
+      : [input.surname, input.name].filter(Boolean).join(' ').trim()) || 'Unnamed Worker'
+  const idProofUrl = input.idProofUrl ?? (input as unknown as { aadhaarUrl?: string }).aadhaarUrl ?? (input as unknown as { idProofKey?: string }).idProofKey ?? ''
+  const emailVal = input.email && input.email.trim() !== '' ? input.email.trim() : null
+  const addressVal = input.address && input.address.trim() !== '' ? input.address.trim() : null
+  const districtVal = input.district && input.district.trim() !== '' ? input.district.trim() : null
+  const cityVal = input.city?.trim() || null
+  const areaVal = input.area?.trim() || (addressVal ? addressVal.slice(0, 80) : null) || 'Unknown'
+  const pincodeVal = input.pincode?.trim() || null
+  const profilePhotoUrl = (input as unknown as { profilePhotoUrl?: string }).profilePhotoUrl || null
+  const drivingLicenseUrl = (input as unknown as { drivingLicenseUrl?: string }).drivingLicenseUrl || null
 
   return db.transaction(async (tx) => {
     const [workerUser] = await tx
       .insert(users)
       .values({
         userType: 'worker',
-        fullName: input.fullName,
-        phone: input.phone,
-        city: input.city,
-        area: input.area,
-        pincode: input.pincode,
-        idProofUrl: input.idProofUrl,
+        fullName,
+        phone,
+        email: emailVal,
+        city: cityVal,
+        district: districtVal,
+        area: areaVal,
+        pincode: pincodeVal,
+        address: addressVal,
+        idProofUrl,
+        profilePhotoUrl: profilePhotoUrl || undefined,
+        drivingLicenseUrl: drivingLicenseUrl || undefined,
         status: 'pending',
       })
       .returning({ id: users.id, status: users.status })
 
     await tx.insert(eventLog).values({
       type: 'worker.registered',
-      payload: { workerId: workerUser!.id, phone: input.phone },
+      payload: { workerId: workerUser!.id, phone },
     })
 
     return { id: workerUser!.id, status: workerUser!.status }
@@ -73,10 +94,18 @@ export async function getMe(workerId: string) {
       id: users.id,
       fullName: users.fullName,
       phone: users.phone,
+      email: users.email,
       city: users.city,
+      district: users.district,
       area: users.area,
       pincode: users.pincode,
+      address: users.address,
       idProofUrl: users.idProofUrl,
+      profilePhotoUrl: users.profilePhotoUrl,
+      drivingLicenseUrl: users.drivingLicenseUrl,
+      isAvailable: users.isAvailable,
+      lastLat: users.lastLat,
+      lastLng: users.lastLng,
       status: users.status,
       registeredAt: users.registeredAt,
       rejectionReason: users.rejectionReason,
@@ -94,11 +123,16 @@ export async function updateMe(workerId: string, input: UpdateMeInput) {
     .set({
       ...(input.fullName !== undefined ? { fullName: input.fullName } : {}),
       ...(input.city !== undefined ? { city: input.city } : {}),
+      ...(input.district !== undefined ? { district: input.district } : {}),
       ...(input.area !== undefined ? { area: input.area } : {}),
       ...(input.pincode !== undefined ? { pincode: input.pincode } : {}),
+      ...(input.address !== undefined ? { address: input.address } : {}),
+      ...(input.isAvailable !== undefined ? { isAvailable: input.isAvailable } : {}),
+      ...(input.lastLat !== undefined ? { lastLat: input.lastLat } : {}),
+      ...(input.lastLng !== undefined ? { lastLng: input.lastLng } : {}),
     })
     .where(eq(users.id, workerId))
-    .returning({ id: users.id, fullName: users.fullName, city: users.city, area: users.area, pincode: users.pincode })
+    .returning({ id: users.id, fullName: users.fullName, city: users.city, area: users.area, pincode: users.pincode, isAvailable: users.isAvailable })
   if (!updated) throw notFound('Worker not found')
   return updated
 }
@@ -154,16 +188,24 @@ export async function availableJobs(workerId: string) {
     throw forbidden('Your registration is not approved yet')
   }
 
+  const baseWhere = workerUser.pincode
+    ? and(eq(jobs.status, 'open'), eq(jobs.pincode, workerUser.pincode!))
+    : eq(jobs.status, 'open')
+
   const items = await db
     .select({
       id: jobs.id,
       title: jobs.title,
       description: jobs.description,
       city: jobs.city,
+      district: jobs.district,
       area: jobs.area,
       pincode: jobs.pincode,
       payAmountInr: jobs.payAmountInr,
       durationHours: jobs.durationHours,
+      deadlineAt: jobs.deadlineAt,
+      lat: jobs.lat,
+      lng: jobs.lng,
       createdAt: jobs.createdAt,
       myPendingRequestId: sql<string | null>`(
         select jr.id from job_requests jr
@@ -172,7 +214,7 @@ export async function availableJobs(workerId: string) {
       )`,
     })
     .from(jobs)
-    .where(and(eq(jobs.status, 'open'), eq(jobs.pincode, workerUser.pincode!)))
+    .where(baseWhere)
     .orderBy(desc(jobs.createdAt))
 
   return { items }

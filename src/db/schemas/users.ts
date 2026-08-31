@@ -1,6 +1,8 @@
 import { sql } from 'drizzle-orm'
 import {
+  boolean,
   check,
+  doublePrecision,
   index,
   pgTable,
   text,
@@ -31,7 +33,13 @@ export const users = pgTable(
     district: text('district'),
     area: text('area'),
     pincode: text('pincode'),
+    address: text('address'),
     idProofUrl: text('id_proof_url'),
+    profilePhotoUrl: text('profile_photo_url'),
+    drivingLicenseUrl: text('driving_license_url'),
+    isAvailable: boolean('is_available').notNull().default(false),
+    lastLat: doublePrecision('last_lat'),
+    lastLng: doublePrecision('last_lng'),
     // workers: 'pending' | 'approved' | 'rejected' — admins: 'active'
     status: varchar('status', { length: 10 }).notNull().default('pending'),
     // Always UTC: timestamptz stores UTC, JS new Date() is UTC when serialized to ISO Z
