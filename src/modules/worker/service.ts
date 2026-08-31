@@ -45,12 +45,22 @@ export async function register(input: RegisterInput) {
     throw conflict('This phone number is already registered')
   }
 
+  const emailRaw = (input as unknown as { email?: string }).email?.trim()?.toLowerCase() ?? null
+  if (emailRaw) {
+    const [adminWithEmail] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.email, emailRaw), eq(users.userType, 'admin')))
+      .limit(1)
+    if (adminWithEmail) throw conflict('This email is already used by an admin')
+  }
+
   const fullName =
     (input.fullName && input.fullName.trim().length >= 3
       ? input.fullName.trim()
       : [input.surname, input.name].filter(Boolean).join(' ').trim()) || 'Unnamed Worker'
   const idProofUrl = input.idProofUrl ?? (input as unknown as { aadhaarUrl?: string }).aadhaarUrl ?? (input as unknown as { idProofKey?: string }).idProofKey ?? ''
-  const emailVal = input.email && input.email.trim() !== '' ? input.email.trim() : null
+  const emailVal = emailRaw
   const addressVal = input.address && input.address.trim() !== '' ? input.address.trim() : null
   const districtVal = input.district && input.district.trim() !== '' ? input.district.trim() : null
   const cityVal = input.city?.trim() || null

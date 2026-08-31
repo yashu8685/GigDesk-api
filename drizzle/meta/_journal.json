@@ -36,6 +36,13 @@
       "when": 1788155248104,
       "tag": "0004_wealthy_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788160685816,
+      "tag": "0005_sturdy_corsair",
+      "breakpoints": true
     }
   ]
 }

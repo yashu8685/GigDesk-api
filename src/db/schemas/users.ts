@@ -53,7 +53,7 @@ export const users = pgTable(
     rejectionReason: text('rejection_reason'),
   },
   (t) => [
-    uniqueIndex('users_email_unique').on(t.email).where(sql`email IS NOT NULL`),
+    uniqueIndex('users_email_unique').on(t.email).where(sql`email IS NOT NULL AND user_type = 'admin'`),
     uniqueIndex('users_phone_unique').on(t.phone).where(sql`phone IS NOT NULL`),
     index('users_type_status_idx').on(t.userType, t.status),
     index('users_pincode_status_idx').on(t.pincode, t.status),
