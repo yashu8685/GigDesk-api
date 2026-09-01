@@ -15,6 +15,7 @@ const envSchema = z.object({
     .string()
     .min(32, 'AUTH_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('12h'),
+  TEST_OTP: z.string().length(6).optional(),
   // Object storage (S3/R2) — optional; presigned uploads return 503 until set
   S3_ENDPOINT: z.string().optional(),
   S3_REGION: z.string().optional(),

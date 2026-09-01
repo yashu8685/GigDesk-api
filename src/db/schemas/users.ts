@@ -42,6 +42,9 @@ export const users = pgTable(
     lastLng: doublePrecision('last_lng'),
     // workers: 'pending' | 'approved' | 'rejected' — admins: 'active'
     status: varchar('status', { length: 10 }).notNull().default('pending'),
+    approvalAcknowledged: boolean('approval_acknowledged')
+  .notNull()
+  .default(false),
     // Always UTC: timestamptz stores UTC, JS new Date() is UTC when serialized to ISO Z
     registeredAt: timestamp('registered_at', { withTimezone: true })
       .notNull()

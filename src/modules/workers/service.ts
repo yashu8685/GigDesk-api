@@ -21,6 +21,7 @@ const workerColumns = {
   lastLat: users.lastLat,
   lastLng: users.lastLng,
   status: users.status,
+  approvalAcknowledged: users.approvalAcknowledged,
   registeredAt: users.registeredAt,
   reviewedAt: users.reviewedAt,
   rejectionReason: users.rejectionReason,
@@ -28,10 +29,29 @@ const workerColumns = {
 
 export async function listWorkers(query: ListWorkersQuery) {
   const conditions = [eq(users.userType, 'worker')]
-  if (query.status) conditions.push(eq(users.status, query.status))
-  if (query.city) conditions.push(ilike(users.city, `%${query.city}%`))
-  if (query.district) conditions.push(ilike(users.district, `%${query.district}%`))
-  if (query.pincode) conditions.push(eq(users.pincode, query.pincode))
+
+  if (query.status) {
+    conditions.push(eq(users.status, query.status))
+  }
+
+  if (query.city) {
+    conditions.push(
+      ilike(users.city, `%${query.city}%`),
+    )
+  }
+
+  if (query.district) {
+    conditions.push(
+      ilike(users.district, `%${query.district}%`),
+    )
+  }
+
+  if (query.pincode) {
+    conditions.push(
+      eq(users.pincode, query.pincode),
+    )
+  }
+
   if (query.search) {
     conditions.push(
       or(
@@ -40,6 +60,7 @@ export async function listWorkers(query: ListWorkersQuery) {
       )!,
     )
   }
+
   const where = and(...conditions)
 
   const [items, [totals]] = await Promise.all([
@@ -49,29 +70,62 @@ export async function listWorkers(query: ListWorkersQuery) {
       .where(where)
       .orderBy(desc(users.registeredAt))
       .limit(query.pageSize)
-      .offset((query.page - 1) * query.pageSize),
-    db.select({ value: count() }).from(users).where(where),
+      .offset(
+        (query.page - 1) * query.pageSize,
+      ),
+
+    db
+      .select({ value: count() })
+      .from(users)
+      .where(where),
   ])
 
   const total = totals!.value
-  return { items, total, page: query.page, pageSize: query.pageSize, totalPages: Math.ceil(total / query.pageSize) }
+
+  return {
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+    totalPages: Math.ceil(
+      total / query.pageSize,
+    ),
+  }
 }
 
 export async function getWorker(workerId: string) {
   const [worker] = await db
     .select(workerColumns)
     .from(users)
-    .where(and(eq(users.id, workerId), eq(users.userType, 'worker')))
+    .where(
+      and(
+        eq(users.id, workerId),
+        eq(users.userType, 'worker'),
+      ),
+    )
     .limit(1)
 
-  if (!worker) throw notFound('Worker not found')
+  if (!worker) {
+    throw notFound('Worker not found')
+  }
+
   return worker
 }
 
 /**
- * Admin reviews a pending worker. Only pending workers can be reviewed —
- * a decision is final (history is kept; nothing is overwritten).
- * Writes the audit event and the worker notification in the same transaction.
+ * Admin reviews a pending worker.
+ *
+ * APPROVE:
+ *   status = approved
+ *   approvalAcknowledged = false
+ *
+ * REJECT:
+ *   status = rejected
+ *   approvalAcknowledged = false
+ *
+ * The worker must acknowledge a new approval from
+ * the Flutter Approved screen before future logins
+ * go directly to Home.
  */
 export async function reviewWorker(
   workerId: string,
@@ -80,26 +134,54 @@ export async function reviewWorker(
 ) {
   return db.transaction(async (tx) => {
     const [worker] = await tx
-      .select({ id: users.id, status: users.status, fullName: users.fullName, area: users.area })
+      .select({
+        id: users.id,
+        status: users.status,
+        fullName: users.fullName,
+        area: users.area,
+      })
       .from(users)
-      .where(and(eq(users.id, workerId), eq(users.userType, 'worker')))
+      .where(
+        and(
+          eq(users.id, workerId),
+          eq(users.userType, 'worker'),
+        ),
+      )
       .for('update')
       .limit(1)
 
-    if (!worker) throw notFound('Worker not found')
+    if (!worker) {
+      throw notFound('Worker not found')
+    }
+
     if (worker.status !== 'pending') {
-      throw conflict(`Worker already reviewed (status: ${worker.status})`)
+      throw conflict(
+        `Worker already reviewed (status: ${worker.status})`,
+      )
     }
 
     const now = new Date()
-    const newStatus = input.decision === 'approve' ? 'approved' : 'rejected'
+
+    const newStatus =
+      input.decision === 'approve'
+        ? 'approved'
+        : 'rejected'
+
     const rejectionReason =
-      input.decision === 'reject' ? input.reason!.trim() : null
+      input.decision === 'reject'
+        ? input.reason!.trim()
+        : null
 
     await tx
       .update(users)
       .set({
         status: newStatus,
+
+        // IMPORTANT:
+        // Every new approval must be acknowledged
+        // by the worker once.
+        approvalAcknowledged: false,
+
         reviewedAt: now,
         reviewedBy: adminId,
         rejectionReason,
@@ -124,7 +206,9 @@ export async function reviewWorker(
           : 'Registration not approved',
       body:
         input.decision === 'approve'
-          ? `You are approved. You can now see open jobs in ${worker.area ?? 'your area'}.`
+          ? `You are approved. You can now see open jobs in ${
+              worker.area ?? 'your area'
+            }.`
           : `Your registration was not approved. Reason: ${rejectionReason}`,
     })
 
@@ -132,6 +216,7 @@ export async function reviewWorker(
       id: workerId,
       fullName: worker.fullName,
       status: newStatus,
+      approvalAcknowledged: false,
       reviewedAt: now.toISOString(),
       rejectionReason,
     }

@@ -1,5 +1,5 @@
 {
-  "id": "27e1c835-207f-465d-96d7-54a967cde2e3",
+  "id": "0b0d8a42-cd66-4467-836d-52e0f45c28ed",
   "prevId": "8bb85fb4-6f29-4542-ac32-eaab9603b947",
   "version": "7",
   "dialect": "postgresql",
@@ -1136,6 +1136,13 @@
           "notNull": true,
           "default": "'pending'"
         },
+        "approval_acknowledged": {
+          "name": "approval_acknowledged",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "registered_at": {
           "name": "registered_at",
           "type": "timestamp with time zone",
@@ -1174,7 +1181,7 @@
             }
           ],
           "isUnique": true,
-          "where": "email IS NOT NULL AND user_type = 'admin'",
+          "where": "email IS NOT NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}

@@ -12,8 +12,9 @@ const OTP_TTL_MINUTES = 10
 const MAX_ATTEMPTS = 5
 
 export async function requestOtp(input: OtpRequestInput) {
-  const code = String(Math.floor(100000 + Math.random() * 900000))
-  const codeHash = await argon2.hash(code)
+  const code =
+     env.TEST_OTP ?? String(Math.floor(100000 + Math.random() * 900000)) 
+   const codeHash = await argon2.hash(code)
   const now = new Date()
 
   await db.insert(authOtps).values({
@@ -71,6 +72,7 @@ export async function verifyOtp(input: OtpVerifyInput) {
       id: users.id,
       fullName: users.fullName,
       status: users.status,
+      approvalAcknowledged: users.approvalAcknowledged,
     })
     .from(users)
     .where(and(eq(users.phone, input.phone), eq(users.userType, 'worker')))
@@ -106,6 +108,35 @@ export async function verifyOtp(input: OtpVerifyInput) {
       id: workerUser.id,
       fullName: workerUser.fullName,
       status: workerUser.status,
+      approvalAcknowledged: workerUser.approvalAcknowledged,
     },
   }
+  
+}
+export async function acknowledgeApproval(workerId: string) {
+  const [worker] = await db
+    .update(users)
+    .set({
+      approvalAcknowledged: true,
+    })
+    .where(
+      and(
+        eq(users.id, workerId),
+        eq(users.userType, 'worker'),
+        eq(users.status, 'approved'),
+      ),
+    )
+    .returning({
+      id: users.id,
+      status: users.status,
+      approvalAcknowledged: users.approvalAcknowledged,
+    })
+
+  if (!worker) {
+    throw badRequest(
+      'Worker is not approved or worker was not found',
+    )
+  }
+
+  return worker
 }
