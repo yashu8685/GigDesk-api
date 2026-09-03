@@ -23,7 +23,30 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: env.NODE_ENV === 'production' ? env.CORS_ORIGINS : true,
+      origin: (origin, callback) => {
+  // Allow requests without an Origin header
+  // (Postman, mobile apps, etc.)
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+
+  // Allow any localhost port
+  const isLocalhost = /^https?:\/\/localhost(?::\d+)?$/.test(origin);
+
+  if (isLocalhost) {
+    callback(null, true);
+    return;
+  }
+
+  // In production, allow configured origins
+  if (env.CORS_ORIGINS.includes(origin)) {
+    callback(null, true);
+    return;
+  }
+
+  callback(new Error('Not allowed by CORS'));
+},
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization'],
