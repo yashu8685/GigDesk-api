@@ -57,6 +57,7 @@ export async function listWorkers(query: ListWorkersQuery) {
       or(
         ilike(users.fullName, `%${query.search}%`),
         ilike(users.phone, `%${query.search}%`),
+        ilike(users.pincode, `%${query.search}%`),
       )!,
     )
   }
