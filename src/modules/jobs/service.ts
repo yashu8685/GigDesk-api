@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, sql } from 'drizzle-orm'
+import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { db } from '../../db/client.js'
 import {
@@ -108,7 +108,7 @@ export async function listJobs(query: ListJobsQuery) {
   if (query.city) conditions.push(ilike(jobs.city, `%${query.city}%`))
   if (query.district) conditions.push(ilike(jobs.district, `%${query.district}%`))
   if (query.pincode) conditions.push(eq(jobs.pincode, query.pincode))
-  if (query.search) conditions.push(ilike(jobs.title, `%${query.search}%`))
+  if (query.search) conditions.push(or(ilike(jobs.title, `%${query.search}%`), ilike(jobs.pincode, `%${query.search}%`))!)
   if (workerFilter) conditions.push(eq(jobs.assignedWorkerId, workerFilter))
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
