@@ -73,19 +73,12 @@ export async function assignJobDirect(
         ),
       )
 
-    await tx
-      .update(jobs)
-      .set({
-        status: 'assigned',
-        assignedWorkerId: workerUser.id,
-        assignedAt: now,
-      })
-      .where(eq(jobs.id, job.id))
+    
 
     await tx.insert(jobAssignments).values({
       jobId: job.id,
       workerId: workerUser.id,
-      status: 'active',
+      status: 'pending',
       source: 'admin_direct',
       assignedAt: now,
       assignedBy: adminId,

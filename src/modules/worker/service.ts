@@ -707,6 +707,95 @@ export async function activeAssignment(workerId: string) {
   return active ?? null
 }
 
+export async function acceptAssignment(
+  workerId: string,
+  assignmentId: string,
+) {
+  return db.transaction(async (tx) => {
+    const [assignment] = await tx
+      .select()
+      .from(jobAssignments)
+      .where(eq(jobAssignments.id, assignmentId))
+      .for('update')
+      .limit(1)
+
+    if (!assignment) {
+      throw notFound('Assignment not found')
+    }
+
+    if (assignment.workerId !== workerId) {
+      throw forbidden(
+        'This invitation belongs to another worker',
+      )
+    }
+
+    if (assignment.status !== 'pending') {
+      throw conflict(
+        'This invitation is no longer pending',
+      )
+    }
+
+    const [job] = await tx
+      .select({
+        id: jobs.id,
+        title: jobs.title,
+        status: jobs.status,
+      })
+      .from(jobs)
+      .where(eq(jobs.id, assignment.jobId))
+      .for('update')
+      .limit(1)
+
+    if (!job) {
+      throw notFound(
+        'Job for this invitation no longer exists',
+      )
+    }
+
+    if (job.status !== 'open') {
+      throw conflict(
+        `Job is no longer open (status: ${job.status})`,
+      )
+    }
+
+    const now = new Date()
+
+    await tx
+      .update(jobAssignments)
+      .set({
+        status: 'active',
+      })
+      .where(eq(jobAssignments.id, assignmentId))
+
+    await tx
+      .update(jobs)
+      .set({
+        status: 'assigned',
+        assignedWorkerId: workerId,
+        assignedAt: now,
+      })
+      .where(eq(jobs.id, job.id))
+
+    await tx.insert(eventLog).values({
+      type: 'job.assigned',
+      jobId: job.id,
+      payload: {
+        workerId,
+        assignmentId,
+        source: 'admin_direct',
+        acceptedByWorker: true,
+      },
+    })
+
+    return {
+      assignmentId,
+      jobId: job.id,
+      status: 'active',
+      jobStatus: 'assigned',
+      acceptedAt: now.toISOString(),
+    }
+  })
+}
 /**
  * Worker completes their assigned job.
  * Proof photo is mandatory — the DB check constraint enforces it too.

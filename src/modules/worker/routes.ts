@@ -9,6 +9,7 @@ import {
   activeAssignment,
   availableJobs,
   completeAssignment,
+  acceptAssignment,
   earnings,
   getMe,
   home,
@@ -90,7 +91,17 @@ workerRouter.get(
     res.json({ ok: true, assignment: await activeAssignment(req.workerId!) })
   }),
 )
+workerRouter.post(
+  '/assignments/:id/accept',
+  asyncHandler(async (req, res) => {
+    const { id } = idParamSchema.parse(req.params)
 
+    res.json({
+      ok: true,
+      ...(await acceptAssignment(req.workerId!, id)),
+    })
+  }),
+)
 workerRouter.post(
   '/assignments/:id/complete',
   asyncHandler(async (req, res) => {

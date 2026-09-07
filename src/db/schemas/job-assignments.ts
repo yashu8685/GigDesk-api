@@ -14,6 +14,7 @@ import { jobs } from './jobs.js'
 import { users } from './users.js'
 
 export const assignmentStatusEnum = pgEnum('assignment_status', [
+  'pending',
   'active',
   'cancelled',
 ])
