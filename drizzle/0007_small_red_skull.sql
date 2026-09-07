@@ -1,0 +1,2 @@
+ALTER TABLE "job_assignments" DROP CONSTRAINT "assignments_cancel_requires_timestamp";--> statement-breakpoint
+ALTER TABLE "job_assignments" ADD CONSTRAINT "assignments_cancel_requires_timestamp" CHECK (status IN ('pending', 'active') OR cancelled_at IS NOT NULL);

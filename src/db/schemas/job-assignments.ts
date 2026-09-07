@@ -54,7 +54,7 @@ export const jobAssignments = pgTable(
     index('job_assignments_worker_idx').on(t.workerId, t.status),
     check(
       'assignments_cancel_requires_timestamp',
-      sql`status = 'active' OR cancelled_at IS NOT NULL`,
+      sql`status IN ('pending', 'active') OR cancelled_at IS NOT NULL`,
     ),
   ],
 )
