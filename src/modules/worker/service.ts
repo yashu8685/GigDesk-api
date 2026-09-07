@@ -447,12 +447,26 @@ export async function availableJobs(workerId: string) {
     )
   }
 
+  const assignmentFilter = sql`
+    not exists (
+      select 1
+      from ${jobAssignments} as ja
+      where
+        ja.job_id = ${jobs.id}
+        and ja.status in ('pending', 'active')
+    )
+  `
+
   const baseWhere = workerUser.pincode
     ? and(
         eq(jobs.status, 'open'),
         eq(jobs.pincode, workerUser.pincode!),
+        assignmentFilter,
       )
-    : eq(jobs.status, 'open')
+    : and(
+        eq(jobs.status, 'open'),
+        assignmentFilter,
+      )
 
   const items = await db
     .select({
